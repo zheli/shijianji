@@ -4,7 +4,7 @@ organization := "com.alienlynx"
 
 version := "0.1"
 
-scalaVersion := "2.12.3"
+scalaVersion := "2.12.6"
 
 val akkaStreamVersion = "2.5.9"
 val akkaHttpVersion = "10.0.9"
