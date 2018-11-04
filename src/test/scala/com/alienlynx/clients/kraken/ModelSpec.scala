@@ -6,7 +6,7 @@ import com.alienlynx.clients.kraken.Kraken.{OHLC, OHLCResponse, OHLCs, ResponseI
 import org.scalatest.{FlatSpec, Matchers}
 import play.api.libs.json.{JsObject, JsValue, Json}
 
-class KrakenModelSpec extends FlatSpec with Matchers {
+class ModelSpec extends FlatSpec with Matchers {
   "clients.kraken" should "parse OHLC entry in json response" in {
     val json = """[1378339200,"97.0","97.0","96.7","96.7","96.9","2.75000000",5]"""
     val expectedResult = OHLC(
