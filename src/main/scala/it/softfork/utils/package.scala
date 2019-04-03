@@ -1,9 +1,8 @@
-package com.alienlynx
+package it.softfork
 
 import akka.http.scaladsl.model.{HttpResponse, Uri}
 import akka.http.scaladsl.unmarshalling.Unmarshaller
 import akka.stream.Materializer
-import play.api.libs.json._
 
 import scala.concurrent.{ExecutionContext, Future}
 

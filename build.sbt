@@ -1,6 +1,6 @@
 name := "shijianji"
 
-organization := "com.alienlynx"
+organization := "it.softfork"
 
 version := "0.1"
 
