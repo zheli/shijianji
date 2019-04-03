@@ -1,4 +1,4 @@
-package it.softfork
+package it.softfork.shijianji
 
 import akka.http.scaladsl.model.{HttpResponse, Uri}
 import akka.http.scaladsl.unmarshalling.Unmarshaller

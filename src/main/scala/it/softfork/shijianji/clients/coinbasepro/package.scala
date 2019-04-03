@@ -1,4 +1,4 @@
-package it.softfork.clients.coinbasepro
+package it.softfork.shijianji.clients
 
 import akka.http.scaladsl.model.Uri
 
