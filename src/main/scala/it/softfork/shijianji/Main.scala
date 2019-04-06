@@ -3,6 +3,7 @@ package it.softfork.shijianji
 import akka.actor.ActorSystem
 import akka.stream.{ActorMaterializer, ActorMaterializerSettings}
 import com.typesafe.scalalogging.StrictLogging
+import it.softfork.shijianji.clients.coinbasepro
 import it.softfork.shijianji.clients.coinbasepro.CoinbasePro
 
 import scala.util.{Failure, Success}
@@ -19,7 +20,7 @@ object Main extends App with StrictLogging {
   val coinbaseproSandboxPass = "INSERT PASSPHASE"
   val coinbaseproSandboxApiKey = "INSERT KEY"
   val coinbaseproSandboxApiSecret = "INSERT SECRET"
-  val coinbase = CoinbasePro(coinbaseproSandboxApiKey, coinbaseproSandboxApiSecret, coinbaseproSandboxPass)
+  val coinbase = CoinbasePro(coinbaseproSandboxApiKey, coinbaseproSandboxApiSecret, coinbaseproSandboxPass, coinbasepro.sandboxBaseUri)
   val responseFuture = coinbase.fills
   responseFuture
     .onComplete {

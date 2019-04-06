@@ -1,6 +1,5 @@
 package it.softfork.shijianji.clients.coinbasepro
 
-import java.nio.charset.StandardCharsets
 import java.util.{Base64, UUID}
 
 import akka.actor.ActorSystem
@@ -38,9 +37,10 @@ object CoinbasePro {
   def apply(
     apiKey: String,
     apiSecret: String,
-    passphrase: String
+    passphrase: String,
+    baseUrl: Uri = coinbasepro.productionBaseUri
   )(implicit system: ActorSystem, materializer: Materializer, ec: ExecutionContext): CoinbasePro = {
-    new CoinbasePro(apiKey, apiSecret, passphrase)
+    new CoinbasePro(apiKey, apiSecret, passphrase, baseUrl)
   }
 
   implicit val config = JsonConfiguration(SnakeCase)
@@ -53,11 +53,18 @@ object CoinbasePro {
   implicit val fillReads: Reads[Fill] = Json.reads[Fill]
 }
 
+/**
+  *
+  * @param apiKey
+  * @param apiSecret
+  * @param passphrase
+  * @param baseUrl the base url for API, can be production or sandbox
+  */
 class CoinbasePro(
   apiKey: String,
   apiSecret: String,
   passphrase: String,
-  baseUrl: Uri = coinbasepro.productionBaseUri
+  baseUrl: Uri
 )(
   implicit system: ActorSystem,
   materializer: Materializer,
