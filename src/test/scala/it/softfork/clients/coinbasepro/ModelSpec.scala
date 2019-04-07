@@ -1,8 +1,10 @@
-package com.alienlynx.clients.coinbasepro
+package it.softfork.clients.coinbasepro
 
+import java.time.ZonedDateTime
 import java.util.UUID
 
-import com.alienlynx.clients.coinbasepro.CoinbasePro.fillReads
+import it.softfork.shijianji.clients.coinbasepro.CoinbasePro.fillReads
+import it.softfork.shijianji.clients.coinbasepro.{Fill, Price, Size, TradeId}
 import org.scalatest.{FlatSpec, Matchers}
 import play.api.libs.json.Json
 
@@ -30,7 +32,12 @@ class ModelSpec extends FlatSpec with Matchers {
         tradeId = TradeId(74),
         price = Price(10.00),
         size = Size(0.01),
-        orderId = UUID.fromString("d50ec984-77a8-460a-b958-66f114b0de9b")
+        createdAt = ZonedDateTime.now(),
+        liquidity = "T",
+        orderId = UUID.fromString("d50ec984-77a8-460a-b958-66f114b0de9b"),
+        settled = true,
+        side = "buy",
+        fee = "0.00025"
       )
     )
 

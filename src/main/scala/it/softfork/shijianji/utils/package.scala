@@ -11,6 +11,10 @@ package object utils {
     def /(path: String): Uri = {
       uri.copy(path = uri.path / path)
     }
+
+    def ?(query: String): Uri = {
+      uri.copy(rawQueryString=Some(query))
+    }
   }
 
   implicit class RichFutureResponse(future: Future[HttpResponse]) {

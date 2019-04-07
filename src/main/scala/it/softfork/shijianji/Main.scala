@@ -13,7 +13,7 @@ import scala.util.{Failure, Success}
 object Main extends App with StrictLogging {
   logger.info("App started.")
 
-  implicit val system = ActorSystem("FetchStuff")
+  implicit val system = ActorSystem("Shijianji")
   implicit val materializer = ActorMaterializer(ActorMaterializerSettings(system))
   import system.dispatcher
 
@@ -21,12 +21,13 @@ object Main extends App with StrictLogging {
   val coinbaseproSandboxApiKey = "INSERT KEY"
   val coinbaseproSandboxApiSecret = "INSERT SECRET"
   val coinbase = CoinbasePro(coinbaseproSandboxApiKey, coinbaseproSandboxApiSecret, coinbaseproSandboxPass, coinbasepro.sandboxBaseUri)
-  val responseFuture = coinbase.fills
+  val responseFuture = coinbase.fills("BTC-EUR")
   responseFuture
     .onComplete {
       case Success(res) => {
         println(res)
-        println("App finished.")
+        logger.debug(s"Found ${res.length} filled orders")
+        logger.info("App finished.")
         system.terminate()
       }
       case Failure(err) => {

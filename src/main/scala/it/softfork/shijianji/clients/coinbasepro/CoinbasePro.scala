@@ -1,6 +1,7 @@
 package it.softfork.shijianji.clients.coinbasepro
 
 import java.nio.charset.StandardCharsets
+import java.time.ZonedDateTime
 import java.util.{Base64, UUID}
 
 import akka.actor.ActorSystem
@@ -25,16 +26,22 @@ import scala.concurrent.duration._
 @jsonFlat case class TradeId(value: Int) extends AnyVal
 case class Price(value: Double) extends AnyVal
 case class Size(value: Double) extends AnyVal
-//@jsonFlat case class OrderId(value: UUID) extends AnyVal
-@json case class ErrorResponse(
-  message: String
-)
+@jsonFlat case class OrderId(value: UUID) extends AnyVal
 
 case class Fill(
   tradeId: TradeId,
   price: Price,
   size: Size,
-  orderId: UUID
+  orderId: UUID,
+  liquidity: String, // Use string for now
+  createdAt: ZonedDateTime,
+  fee: String, // Use string for now
+  settled: Boolean,
+  side: String // Use string for now
+)
+
+@json case class ErrorResponse(
+  message: String
 )
 
 object CoinbasePro {
@@ -53,7 +60,7 @@ object CoinbasePro {
     json.validate[String].map(s => Price(s.toDouble))
   }
   implicit val sizeReads: Reads[Size] = Reads[Size] { json =>
-    json.validate[String].map(s => Size(s.toDouble))
+    json.validate[String].map(s => Size(s.toFloat))
   }
   implicit val fillReads: Reads[Fill] = Json.reads[Fill]
 }
@@ -76,7 +83,6 @@ class CoinbasePro(
   ec: ExecutionContext
 ) extends PlayJsonSupport
     with StrictLogging {
-
 
   // Copied some code from
   // https://github.com/jar-o/gdax-scala/blob/master/src/main/scala/GDAX/api.scala#CoinbaseAuth
@@ -102,22 +108,20 @@ class CoinbasePro(
     )
   }
 
-  def fills: Future[Seq[Fill]] = {
+  def fills(productId: String): Future[Seq[Fill]] = {
     import CoinbasePro.fillReads
 
-    val uri: Uri = (sandboxBaseUri / "fills") ? "product_id=BTC-EUR"
-//    val uri: Uri = (sandboxBaseUri / "accounts")
-    logger.debug(s"Uri: $uri")
+    val uri: Uri = (sandboxBaseUri / "fills") ? s"product_id=$productId"
+    logger.debug(s"Sending request to $uri")
     val request = HttpRequest(uri = uri)
+
     val futureResponse = Http().singleRequest(request.withHeaders(request.headers ++ authHeaders(uri, "GET", "")))
     futureResponse.flatMap { response: HttpResponse =>
       if (response.status.isSuccess()) {
         response.entity.toStrict(300.millis).map(_.data).map(x => println(x.utf8String))
         Unmarshal(response.entity).to[Seq[Fill]]
-//        Unmarshal(response.entity).to[Seq[String]]
-//        response.entity.dataBytes.toString()
       } else {
-        Unmarshal(response.entity).to[ErrorResponse].map(x=>logger.error(x.message))
+        Unmarshal(response.entity).to[ErrorResponse].map(x => logger.error(x.message))
         throw new RuntimeException(s"$response")
       }
     }
