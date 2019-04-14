@@ -13,6 +13,7 @@ import akka.stream.Materializer
 import it.softfork.shijianji.utils.RichUri
 import com.typesafe.scalalogging.StrictLogging
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport
+import it.softfork.shijianji.{Trade, User}
 import it.softfork.shijianji.clients.coinbasepro
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
@@ -30,6 +31,7 @@ case class Size(value: Double) extends AnyVal
 
 case class Fill(
   tradeId: TradeId,
+  productId: String,
   price: Price,
   size: Size,
   orderId: UUID,
@@ -39,6 +41,22 @@ case class Fill(
   settled: Boolean,
   side: String // Use string for now
 )
+
+object Fill {
+  def toTransaction(user: User, fill: Fill): Trade = {
+    val Array(sellProduct, buyProduct) = fill.productId.split("-")
+    Trade(
+      user = user,
+      timestamp = fill.createdAt,
+      sellProduct = sellProduct, // TODO change this
+      sellAmount= 0.1,
+      buyProduct= buyProduct, // Use String for now
+      buyAmount= 0.1,
+      platform= "CoinbasePro", // Use String for now
+      extraJsonData= None
+    )
+  }
+}
 
 @json case class ErrorResponse(
   message: String

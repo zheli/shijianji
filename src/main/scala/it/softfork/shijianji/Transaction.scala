@@ -2,6 +2,8 @@ package it.softfork.shijianji
 
 import java.time.ZonedDateTime
 
+import play.api.libs.json.JsValue
+
 sealed trait Transaction {
   val user: User
   val timestamp: ZonedDateTime
@@ -14,7 +16,8 @@ case class Trade(
   sellAmount: BigDecimal,
   buyProduct: String, // Use String for now
   buyAmount: BigDecimal,
-  platform: String // Use String for now
+  platform: String, // Use String for now
+  extraJsonData: Option[JsValue]
 ) extends Transaction
 
 case class Deposit(

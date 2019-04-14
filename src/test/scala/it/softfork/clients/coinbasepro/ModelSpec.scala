@@ -30,6 +30,7 @@ class ModelSpec extends FlatSpec with Matchers {
     val expectedResult = Seq(
       Fill(
         tradeId = TradeId(74),
+        productId = "BTC-USD",
         price = Price(10.00),
         size = Size(0.01),
         createdAt = ZonedDateTime.now(),
