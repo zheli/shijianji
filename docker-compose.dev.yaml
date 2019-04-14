@@ -1,0 +1,9 @@
+version: '3'
+services:
+  postgres:
+    image: "postgres:alpine"
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: test123
+    ports:
+      - "5432:5432"
