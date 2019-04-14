@@ -111,14 +111,14 @@ class CoinbasePro(
   def fills(productId: String): Future[Seq[Fill]] = {
     import CoinbasePro.fillReads
 
-    val uri: Uri = (sandboxBaseUri / "fills") ? s"product_id=$productId"
+    val uri: Uri = (baseUrl / "fills") ? s"product_id=$productId"
     logger.debug(s"Sending request to $uri")
     val request = HttpRequest(uri = uri)
 
     val futureResponse = Http().singleRequest(request.withHeaders(request.headers ++ authHeaders(uri, "GET", "")))
     futureResponse.flatMap { response: HttpResponse =>
       if (response.status.isSuccess()) {
-        response.entity.toStrict(300.millis).map(_.data).map(x => println(x.utf8String))
+//        response.entity.toStrict(300.millis).map(_.data).map(x => println(x.utf8String))
         Unmarshal(response.entity).to[Seq[Fill]]
       } else {
         Unmarshal(response.entity).to[ErrorResponse].map(x => logger.error(x.message))

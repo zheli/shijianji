@@ -3,13 +3,16 @@
 <configuration>
 
     <property name="consolePattern"
-        value="%date{ISO8601} %-5level [%cyan(%logger{36})] [%gray(%marker)] %msg %n"/>
+              value="%date{ISO8601} %-5level [%cyan(%logger{36})] [%gray(%marker)] %msg %n"/>
 
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>${consolePattern}</pattern>
         </encoder>
     </appender>
+
+    <logger name="akka" level="DEBUG"/>
+    <logger name="com.typesafe.sslconfig" level="ERROR"/>
 
     <root level="DEBUG">
         <appender-ref ref="CONSOLE"/>
