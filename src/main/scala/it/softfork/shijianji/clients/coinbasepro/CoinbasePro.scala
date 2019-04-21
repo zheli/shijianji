@@ -55,6 +55,7 @@ object Fill {
 
     Trade(
       user = user,
+      // TODO add external id
       timestamp = fill.createdAt,
       soldAmount = fill.soldAmount,
       boughtAmount = fill.boughtAmount,
@@ -136,19 +137,60 @@ class CoinbasePro(
   def fills(productId: String): Future[Seq[Fill]] = {
     import CoinbasePro.fillReads
 
-    val uri: Uri = (baseUrl / "fills") ? s"product_id=$productId"
-    logger.debug(s"Sending request to $uri")
-    val request = HttpRequest(uri = uri)
+    val baseUri: Uri = baseUrl / "fills"
 
-    val futureResponse = Http().singleRequest(request.withHeaders(request.headers ++ authHeaders(uri, "GET", "")))
-    futureResponse.flatMap { response: HttpResponse =>
-      if (response.status.isSuccess()) {
-//        response.entity.toStrict(300.millis).map(_.data).map(x => println(x.utf8String))
-        Unmarshal(response.entity).to[Seq[Fill]]
-      } else {
-        Unmarshal(response.entity).to[ErrorResponse].map(x => logger.error(x.message))
-        throw new RuntimeException(s"$response")
+    def fetch(oldestTrade: Option[TradeId], totalFills: Seq[Fill]): Future[Seq[Fill]] = {
+      val uri = oldestTrade match {
+        case Some(id) => baseUri ? s"product_id=$productId&after=${id.value}"
+        case None => baseUri ? s"product_id=$productId"
+      }
+      logger.debug(s"Sending request to $uri")
+      val request = HttpRequest(uri = uri)
+      val requestWithHeader = request.withHeaders(request.headers ++ authHeaders(uri, "GET", ""))
+
+      val futureResult = Http()
+        .singleRequest(requestWithHeader)
+        .flatMap { response =>
+          if (response.status.isSuccess()) {
+            response.headers.filter { header =>
+              header.name == "cb-before" || header.name == "cb-after"
+            }.foreach(println(_))
+//            response.entity.dataBytes.map(x => println(x.utf8String))
+            Unmarshal(response.entity).to[Seq[Fill]].map { fills: Seq[Fill] =>
+              logger.debug(s"Fetched ${fills.length} fills")
+              fills
+            }
+          } else {
+            Unmarshal(response.entity).to[ErrorResponse].map(x => logger.error(x.message))
+            throw new RuntimeException(s"$response")
+          }
+        }
+
+      futureResult.flatMap { currentFills: Seq[Fill] =>
+        // The result will be empty if previous page was the last page
+        if (currentFills.isEmpty) {
+          Future(totalFills)
+        } else {
+          val oldestCurrentFill = currentFills.reverse.head
+          fetch(Some(oldestCurrentFill.tradeId), currentFills ++ totalFills)
+//          val oldestCurrentFill = currentFills.reverse.head
+//
+//          totalFills.reverse.headOption match {
+//            case Some(oldestFill) =>
+//              if (oldestCurrentFill != oldestFill) {
+//                fetch(Some(oldestCurrentFill.tradeId), currentFills ++ totalFills)
+//              } else
+//                Future(totalFills)
+//
+//            case None =>
+//              fetch(Some(oldestCurrentFill.tradeId), currentFills ++ totalFills)
+//          }
+        }
       }
     }
+
+    import it.softfork.shijianji.utils.zonedDateTimeOrdering
+
+    fetch(oldestTrade = None, totalFills = Seq.empty[Fill]).map(_.sortBy(_.createdAt))
   }
 }

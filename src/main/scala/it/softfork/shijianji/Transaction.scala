@@ -6,11 +6,27 @@ import play.api.libs.json.JsValue
 import tech.minna.playjson.macros.jsonFlat
 
 @jsonFlat case class Currency(value: String) extends AnyVal
+object Currency {
+  val fiats: Set[String] = Set(
+    "EUR",
+    "USD"
+  )
+}
 
 case class Amount(
   value: BigDecimal,
   currency: Currency
-)
+) {
+  override def toString: String = {
+    val updatedValue = {
+      if (Currency.fiats.contains(currency.value)) {
+        value.setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble
+      } else
+        value
+    }
+    s"$updatedValue ${ currency.value }"
+  }
+}
 
 sealed trait Transaction {
   val user: User

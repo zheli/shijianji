@@ -1,5 +1,7 @@
 package it.softfork.shijianji
 
+import java.time.ZonedDateTime
+
 import akka.http.scaladsl.model.{HttpResponse, Uri}
 import akka.http.scaladsl.unmarshalling.Unmarshaller
 import akka.stream.Materializer
@@ -38,4 +40,5 @@ package object utils {
     }
   }
 
+  implicit def zonedDateTimeOrdering: Ordering[ZonedDateTime] = Ordering.fromLessThan(_ isBefore _)
 }
