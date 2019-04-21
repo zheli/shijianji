@@ -13,7 +13,7 @@ import akka.stream.Materializer
 import it.softfork.shijianji.utils.RichUri
 import com.typesafe.scalalogging.StrictLogging
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport
-import it.softfork.shijianji.{Trade, User}
+import it.softfork.shijianji.{Amount, Currency, Trade, User}
 import it.softfork.shijianji.clients.coinbasepro
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
@@ -25,9 +25,10 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
 
 @jsonFlat case class TradeId(value: Int) extends AnyVal
-case class Price(value: Double) extends AnyVal
-case class Size(value: Double) extends AnyVal
+@jsonFlat case class Product(value: String) extends AnyVal
 @jsonFlat case class OrderId(value: UUID) extends AnyVal
+case class Price(value: BigDecimal) extends AnyVal
+case class Size(value: BigDecimal) extends AnyVal
 
 case class Fill(
   tradeId: TradeId,
@@ -37,23 +38,29 @@ case class Fill(
   orderId: UUID,
   liquidity: String, // Use string for now
   createdAt: ZonedDateTime,
-  fee: String, // Use string for now
+  fee: Option[BigDecimal],
   settled: Boolean,
   side: String // Use string for now
-)
+) {
+  val boughtCurrency: String = productId.split("-").head
+  val soldCurrency: String = productId.split("-").tail.head
+  val soldAmount = Amount(value = price.value * size.value, currency = Currency(soldCurrency))
+  val boughtAmount = Amount(value = size.value, currency = Currency(boughtCurrency))
+}
 
 object Fill {
+
   def toTransaction(user: User, fill: Fill): Trade = {
-    val Array(sellProduct, buyProduct) = fill.productId.split("-")
+    val fee = fill.fee.map(Amount(_, fill.soldAmount.currency))
+
     Trade(
       user = user,
       timestamp = fill.createdAt,
-      sellProduct = sellProduct, // TODO change this
-      sellAmount= 0.1,
-      buyProduct= buyProduct, // Use String for now
-      buyAmount= 0.1,
-      platform= "CoinbasePro", // Use String for now
-      extraJsonData= None
+      soldAmount = fill.soldAmount,
+      boughtAmount = fill.boughtAmount,
+      fee = fee,
+      platform = "CoinbasePro", // Use String for now
+      extraJsonData = None
     )
   }
 }
@@ -75,10 +82,10 @@ object CoinbasePro {
 
   implicit val config = JsonConfiguration(SnakeCase)
   implicit val priceReads: Reads[Price] = Reads[Price] { json =>
-    json.validate[String].map(s => Price(s.toDouble))
+    json.validate[String].map(s => Price(BigDecimal(s)))
   }
   implicit val sizeReads: Reads[Size] = Reads[Size] { json =>
-    json.validate[String].map(s => Size(s.toFloat))
+    json.validate[String].map(s => Size(BigDecimal(s)))
   }
   implicit val fillReads: Reads[Fill] = Json.reads[Fill]
 }
