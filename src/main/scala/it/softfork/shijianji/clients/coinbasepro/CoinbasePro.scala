@@ -13,7 +13,7 @@ import akka.stream.Materializer
 import it.softfork.shijianji.utils.RichUri
 import com.typesafe.scalalogging.StrictLogging
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport
-import it.softfork.shijianji.{Amount, Currency, Trade, User}
+import it.softfork.shijianji._
 import it.softfork.shijianji.clients.coinbasepro
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
@@ -21,8 +21,10 @@ import play.api.libs.json.JsonNaming.SnakeCase
 import play.api.libs.json._
 import tech.minna.playjson.macros.{json, jsonFlat}
 
+import scala.async.Async.{async, await}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
+import scala.util.control.NonFatal
 
 @jsonFlat case class TradeId(value: Int) extends AnyVal
 @jsonFlat case class Product(value: String) extends AnyVal
@@ -48,6 +50,16 @@ case class Fill(
   val boughtAmount = Amount(value = size.value, currency = Currency(boughtCurrency))
 }
 
+case class CoinbaseProduct(
+  id: String,
+  baseCurrency: Currency,
+  quoteCurrency: Currency,
+  baseMinSize: String,
+  baseMaxSize: String,
+  quoteIncrement: String
+)
+
+
 object Fill {
 
   def toTransaction(user: User, fill: Fill): Trade = {
@@ -55,12 +67,12 @@ object Fill {
 
     Trade(
       user = user,
-      // TODO add external id
       timestamp = fill.createdAt,
       soldAmount = fill.soldAmount,
       boughtAmount = fill.boughtAmount,
       fee = fee,
       platform = "CoinbasePro", // Use String for now
+      externalId = fill.tradeId.value.toString,
       extraJsonData = None
     )
   }
@@ -89,6 +101,7 @@ object CoinbasePro {
     json.validate[String].map(s => Size(BigDecimal(s)))
   }
   implicit val fillReads: Reads[Fill] = Json.reads[Fill]
+  implicit val coinbaseProductReads: Reads[CoinbaseProduct] = Json.reads[CoinbaseProduct]
 }
 
 /**
@@ -109,6 +122,7 @@ class CoinbasePro(
   ec: ExecutionContext
 ) extends PlayJsonSupport
     with StrictLogging {
+  import CoinbasePro._
 
   // Copied some code from
   // https://github.com/jar-o/gdax-scala/blob/master/src/main/scala/GDAX/api.scala#CoinbaseAuth
@@ -134,9 +148,28 @@ class CoinbasePro(
     )
   }
 
-  def fills(productId: String): Future[Seq[Fill]] = {
-    import CoinbasePro.fillReads
+  def products: Future[Seq[CoinbaseProduct]] = {
+    val uri: Uri = baseUrl / "products"
+    val request = HttpRequest(uri = uri)
+    Http()
+      .singleRequest(request)
+      .flatMap { response =>
+        if (response.status.isSuccess()) {
+//          response.entity.toStrict(300.millis).map(_.data).map(x => println(x.utf8String))
+          Unmarshal(response.entity).to[Seq[CoinbaseProduct]].map { products =>
+            logger.debug(s"Fetched ${products.length} products")
+            products
+          }.recover {
+            case ex => throw new RuntimeException("Error", ex)
+          }
+        } else {
+          Unmarshal(response.entity).to[ErrorResponse].map(x => logger.error(x.message))
+          throw new RuntimeException(s"$response")
+        }
+      }
+  }
 
+  def fills(productId: String): Future[Seq[Fill]] = {
     val baseUri: Uri = baseUrl / "fills"
 
     def fetch(oldestTrade: Option[TradeId], totalFills: Seq[Fill]): Future[Seq[Fill]] = {
@@ -152,10 +185,6 @@ class CoinbasePro(
         .singleRequest(requestWithHeader)
         .flatMap { response =>
           if (response.status.isSuccess()) {
-            response.headers.filter { header =>
-              header.name == "cb-before" || header.name == "cb-after"
-            }.foreach(println(_))
-//            response.entity.dataBytes.map(x => println(x.utf8String))
             Unmarshal(response.entity).to[Seq[Fill]].map { fills: Seq[Fill] =>
               logger.debug(s"Fetched ${fills.length} fills")
               fills
@@ -173,18 +202,6 @@ class CoinbasePro(
         } else {
           val oldestCurrentFill = currentFills.reverse.head
           fetch(Some(oldestCurrentFill.tradeId), currentFills ++ totalFills)
-//          val oldestCurrentFill = currentFills.reverse.head
-//
-//          totalFills.reverse.headOption match {
-//            case Some(oldestFill) =>
-//              if (oldestCurrentFill != oldestFill) {
-//                fetch(Some(oldestCurrentFill.tradeId), currentFills ++ totalFills)
-//              } else
-//                Future(totalFills)
-//
-//            case None =>
-//              fetch(Some(oldestCurrentFill.tradeId), currentFills ++ totalFills)
-//          }
         }
       }
     }
@@ -192,5 +209,9 @@ class CoinbasePro(
     import it.softfork.shijianji.utils.zonedDateTimeOrdering
 
     fetch(oldestTrade = None, totalFills = Seq.empty[Fill]).map(_.sortBy(_.createdAt))
+  }
+
+  def trades = {
+    val allProducts = products
   }
 }

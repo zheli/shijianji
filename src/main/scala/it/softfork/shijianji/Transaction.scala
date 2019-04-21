@@ -6,6 +6,7 @@ import play.api.libs.json.JsValue
 import tech.minna.playjson.macros.jsonFlat
 
 @jsonFlat case class Currency(value: String) extends AnyVal
+
 object Currency {
   val fiats: Set[String] = Set(
     "EUR",
@@ -33,6 +34,7 @@ sealed trait Transaction {
   val timestamp: ZonedDateTime
   val fee: Option[Amount]
   val platform: String
+  val externalId: String
 }
 
 case class Trade(
@@ -42,6 +44,7 @@ case class Trade(
   boughtAmount: Amount,
   fee: Option[Amount],
   platform: String, // Use String for now
+  externalId: String,
   extraJsonData: Option[JsValue]
 ) extends Transaction {
   def buyingPrice = soldAmount.value / boughtAmount.value
@@ -57,7 +60,8 @@ case class Deposit(
   timestamp: ZonedDateTime,
   amount: Amount,
   fee: Option[Amount],
-  platform: String // Use String for now
+  platform: String, // Use String for now
+  externalId: String
 ) extends NonTradingTransaction
 
 case class Withdraw(
@@ -65,5 +69,6 @@ case class Withdraw(
   timestamp: ZonedDateTime,
   amount: Amount,
   fee: Option[Amount],
-  platform: String // Use String for now
+  platform: String, // Use String for now
+  externalId: String
 ) extends NonTradingTransaction
