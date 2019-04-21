@@ -5,7 +5,7 @@ import java.util.UUID
 
 import it.softfork.shijianji.{Amount, Currency}
 import it.softfork.shijianji.clients.coinbasepro.CoinbasePro.fillReads
-import it.softfork.shijianji.clients.coinbasepro.{Fill, Price, Size, TradeId}
+import it.softfork.shijianji.clients.coinbasepro._
 import org.scalatest.{FlatSpec, Matchers}
 import play.api.libs.json.Json
 
@@ -32,7 +32,7 @@ class ModelSpec extends FlatSpec with Matchers {
     val expectedResult = Seq(
       Fill(
         tradeId = TradeId(74),
-        productId = "BTC-USD",
+        productId = ProductId("BTC-USD"),
         price = Price(10.00),
         size = Size(0.01),
         createdAt = ZonedDateTime.now(),
@@ -50,7 +50,7 @@ class ModelSpec extends FlatSpec with Matchers {
   it should "get sold and bought amount" in {
     val fill = Fill(
       tradeId = TradeId(74),
-      productId = "BTC-USD",
+      productId = ProductId("BTC-USD"),
       price = Price(10.00),
       size = Size(0.01),
       createdAt = ZonedDateTime.now(),

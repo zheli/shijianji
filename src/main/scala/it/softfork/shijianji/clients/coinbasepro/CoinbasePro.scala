@@ -1,6 +1,5 @@
 package it.softfork.shijianji.clients.coinbasepro
 
-import java.nio.charset.StandardCharsets
 import java.time.ZonedDateTime
 import java.util.{Base64, UUID}
 
@@ -10,11 +9,12 @@ import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.{Accept, RawHeader}
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.Materializer
-import it.softfork.shijianji.utils.RichUri
 import com.typesafe.scalalogging.StrictLogging
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport
 import it.softfork.shijianji._
 import it.softfork.shijianji.clients.coinbasepro
+import it.softfork.shijianji.utils.FutureCollection.mapSequential
+import it.softfork.shijianji.utils.RichUri
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 import play.api.libs.json.JsonNaming.SnakeCase
@@ -27,14 +27,14 @@ import scala.concurrent.duration._
 import scala.util.control.NonFatal
 
 @jsonFlat case class TradeId(value: Int) extends AnyVal
-@jsonFlat case class Product(value: String) extends AnyVal
+@jsonFlat case class ProductId(value: String) extends AnyVal
 @jsonFlat case class OrderId(value: UUID) extends AnyVal
 case class Price(value: BigDecimal) extends AnyVal
 case class Size(value: BigDecimal) extends AnyVal
 
 case class Fill(
   tradeId: TradeId,
-  productId: String,
+  productId: ProductId,
   price: Price,
   size: Size,
   orderId: UUID,
@@ -44,14 +44,14 @@ case class Fill(
   settled: Boolean,
   side: String // Use string for now
 ) {
-  val boughtCurrency: String = productId.split("-").head
-  val soldCurrency: String = productId.split("-").tail.head
+  val boughtCurrency: String = productId.value.split("-").head
+  val soldCurrency: String = productId.value.split("-").tail.head
   val soldAmount = Amount(value = price.value * size.value, currency = Currency(soldCurrency))
   val boughtAmount = Amount(value = size.value, currency = Currency(boughtCurrency))
 }
 
 case class CoinbaseProduct(
-  id: String,
+  id: ProductId,
   baseCurrency: Currency,
   quoteCurrency: Currency,
   baseMinSize: String,
@@ -169,13 +169,13 @@ class CoinbasePro(
       }
   }
 
-  def fills(productId: String): Future[Seq[Fill]] = {
+  def fillsByProductId(productId: ProductId): Future[Seq[Fill]] = {
     val baseUri: Uri = baseUrl / "fills"
 
     def fetch(oldestTrade: Option[TradeId], totalFills: Seq[Fill]): Future[Seq[Fill]] = {
       val uri = oldestTrade match {
-        case Some(id) => baseUri ? s"product_id=$productId&after=${id.value}"
-        case None => baseUri ? s"product_id=$productId"
+        case Some(id) => baseUri ? s"product_id=${productId.value}&after=${id.value}"
+        case None => baseUri ? s"product_id=${productId.value}"
       }
       logger.debug(s"Sending request to $uri")
       val request = HttpRequest(uri = uri)
@@ -211,7 +211,8 @@ class CoinbasePro(
     fetch(oldestTrade = None, totalFills = Seq.empty[Fill]).map(_.sortBy(_.createdAt))
   }
 
-  def trades = {
-    val allProducts = products
+  def allFills: Future[Seq[Fill]] = async {
+    val allProducts = await(products)
+    await(mapSequential(allProducts)(product => fillsByProductId(product.id)).map(_.flatten))
   }
 }
