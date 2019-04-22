@@ -3,12 +3,14 @@ package it.softfork.shijianji.clients.coinbasepro
 import java.time.ZonedDateTime
 import java.util.{Base64, UUID}
 
+import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.{Accept, RawHeader}
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.Materializer
+import akka.stream.scaladsl.{Sink, Source}
 import com.typesafe.scalalogging.StrictLogging
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport
 import it.softfork.shijianji._
@@ -22,6 +24,7 @@ import play.api.libs.json._
 import tech.minna.playjson.macros.{json, jsonFlat}
 
 import scala.async.Async.{async, await}
+import scala.collection.immutable
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
 import scala.util.control.NonFatal
@@ -123,6 +126,8 @@ class CoinbasePro(
     with StrictLogging {
   import CoinbasePro._
 
+  val pageLimit = 100
+
   // Copied some code from
   // https://github.com/jar-o/gdax-scala/blob/master/src/main/scala/GDAX/api.scala#CoinbaseAuth
   private def authHeaders(uri: Uri, method: String, body: String) = {
@@ -138,7 +143,7 @@ class CoinbasePro(
       Base64.getEncoder.encodeToString(hmac.doFinal(message.getBytes))
     }
 
-    logger.debug(s"Current timestamp: $timestamp")
+    logger.trace(s"Current timestamp: $timestamp")
 
     Seq(
       Accept(MediaTypes.`application/json`),
@@ -150,6 +155,8 @@ class CoinbasePro(
   }
 
   private def get(uri: Uri): Future[HttpResponse] = {
+    logger.info(s"Sending request to $uri")
+
     val request = HttpRequest(uri = uri)
     val requestWithHeader = request.withHeaders(request.headers ++ authHeaders(uri, "GET", ""))
     Http().singleRequest(requestWithHeader)
@@ -157,10 +164,8 @@ class CoinbasePro(
 
   def products: Future[Seq[CoinbaseProduct]] = {
     val uri: Uri = baseUrl / "products"
-    val request = HttpRequest(uri = uri)
-    Http()
-      .singleRequest(request)
-      .flatMap { response =>
+
+    get(uri).flatMap { response =>
         if (response.status.isSuccess()) {
 //          response.entity.toStrict(300.millis).map(_.data).map(x => println(x.utf8String))
           Unmarshal(response.entity)
@@ -187,13 +192,8 @@ class CoinbasePro(
         case Some(id) => baseUri ? s"product_id=${productId.value}&after=${id.value}"
         case None => baseUri ? s"product_id=${productId.value}"
       }
-      logger.debug(s"Sending request to $uri")
-      val request = HttpRequest(uri = uri)
-      val requestWithHeader = request.withHeaders(request.headers ++ authHeaders(uri, "GET", ""))
 
-      val futureResult = Http()
-        .singleRequest(requestWithHeader)
-        .flatMap { response =>
+      val futureResult = get(uri).flatMap { response =>
           if (response.status.isSuccess()) {
             Unmarshal(response.entity).to[Seq[Fill]].map { fills: Seq[Fill] =>
               logger.debug(s"Fetched ${fills.length} fills")
@@ -207,7 +207,8 @@ class CoinbasePro(
 
       futureResult.flatMap { currentFills: Seq[Fill] =>
         // The result will be empty if previous page was the last page
-        if (currentFills.isEmpty) {
+        // Or when the number of results returned is less than page limit
+        if (currentFills.isEmpty || currentFills.length < pageLimit) {
           Future(totalFills)
         } else {
           val oldestCurrentFill = currentFills.reverse.head
@@ -221,9 +222,17 @@ class CoinbasePro(
     fetch(oldestTrade = None, totalFills = Seq.empty[Fill]).map(_.sortBy(_.createdAt))
   }
 
-  def allFills: Future[Seq[Fill]] = async {
-    val allProducts = await(products)
-    await(mapSequential(allProducts)(product => fillsByProductId(product.id)).map(_.flatten))
+  def allFills: Future[Seq[Fill]] = {
+    val source: Source[CoinbaseProduct, NotUsed] = Source.fromFuture(products).flatMapConcat(products => Source.fromIterator(()=>products.toIterator))
+    source
+      .mapAsyncUnordered(10) { product =>
+        fillsByProductId(product.id)
+      }
+      .mapConcat(_.to[collection.immutable.Seq])
+      .runWith(Sink.seq)
+      .collect {
+        case fills: Seq[Fill] => fills
+      }
   }
 
   def accounts = {
@@ -255,6 +264,7 @@ class CoinbasePro(
 
   def time = {
     val uri: Uri = baseUrl / "time"
+
     get(uri).flatMap { response =>
       if (response.status.isSuccess()) {
         response.entity.toStrict(1.second).map(_.data.utf8String)
