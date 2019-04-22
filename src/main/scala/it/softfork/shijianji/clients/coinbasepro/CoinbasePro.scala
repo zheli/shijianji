@@ -59,7 +59,6 @@ case class CoinbaseProduct(
   quoteIncrement: String
 )
 
-
 object Fill {
 
   def toTransaction(user: User, fill: Fill): Trade = {
@@ -139,6 +138,8 @@ class CoinbasePro(
       Base64.getEncoder.encodeToString(hmac.doFinal(message.getBytes))
     }
 
+    logger.debug(s"Current timestamp: $timestamp")
+
     Seq(
       Accept(MediaTypes.`application/json`),
       RawHeader("CB-ACCESS-KEY", apiKey),
@@ -146,6 +147,12 @@ class CoinbasePro(
       RawHeader("CB-ACCESS-TIMESTAMP", timestamp.toString),
       RawHeader("CB-ACCESS-PASSPHRASE", passphrase),
     )
+  }
+
+  private def get(uri: Uri): Future[HttpResponse] = {
+    val request = HttpRequest(uri = uri)
+    val requestWithHeader = request.withHeaders(request.headers ++ authHeaders(uri, "GET", ""))
+    Http().singleRequest(requestWithHeader)
   }
 
   def products: Future[Seq[CoinbaseProduct]] = {
@@ -156,12 +163,15 @@ class CoinbasePro(
       .flatMap { response =>
         if (response.status.isSuccess()) {
 //          response.entity.toStrict(300.millis).map(_.data).map(x => println(x.utf8String))
-          Unmarshal(response.entity).to[Seq[CoinbaseProduct]].map { products =>
-            logger.debug(s"Fetched ${products.length} products")
-            products
-          }.recover {
-            case ex => throw new RuntimeException("Error", ex)
-          }
+          Unmarshal(response.entity)
+            .to[Seq[CoinbaseProduct]]
+            .map { products =>
+              logger.debug(s"Fetched ${products.length} products")
+              products
+            }
+            .recover {
+              case ex => throw new RuntimeException("Error", ex)
+            }
         } else {
           Unmarshal(response.entity).to[ErrorResponse].map(x => logger.error(x.message))
           throw new RuntimeException(s"$response")
@@ -214,5 +224,44 @@ class CoinbasePro(
   def allFills: Future[Seq[Fill]] = async {
     val allProducts = await(products)
     await(mapSequential(allProducts)(product => fillsByProductId(product.id)).map(_.flatten))
+  }
+
+  def accounts = {
+    import Account.formatter
+
+    // If don't include "?" it will get invalid signature error from coinbase pro
+    val uri: Uri = (baseUrl / "accounts") ? ""
+
+    get(uri).flatMap { response =>
+        if (response.status.isSuccess()) {
+          //          response.entity.toStrict(300.millis).map(_.data).map(x => println(x.utf8String))
+          Unmarshal(response.entity)
+            .to[Seq[Account]]
+            .map { accounts =>
+              logger.debug(s"Fetched ${accounts.length} accounts")
+              accounts
+            }
+            .recover {
+              case ex => throw new RuntimeException("Error", ex)
+            }
+        } else {
+          Unmarshal(response.entity).to[ErrorResponse].map { errorResponse =>
+            logger.error(s"Failed to get response from $uri! Message: ${errorResponse.message}")
+          }
+          throw new RuntimeException(s"$response")
+        }
+      }
+  }
+
+  def time = {
+    val uri: Uri = baseUrl / "time"
+    get(uri).flatMap { response =>
+      if (response.status.isSuccess()) {
+        response.entity.toStrict(1.second).map(_.data.utf8String)
+      } else {
+        Unmarshal(response.entity).to[ErrorResponse].map(x => logger.error(x.message))
+        throw new RuntimeException(s"$response")
+      }
+    }
   }
 }
