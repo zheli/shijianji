@@ -8,26 +8,21 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.{Accept, RawHeader}
-import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.Materializer
 import akka.stream.scaladsl.{Sink, Source}
 import com.typesafe.scalalogging.StrictLogging
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport
 import it.softfork.shijianji._
 import it.softfork.shijianji.clients.coinbasepro
-import it.softfork.shijianji.utils.FutureCollection.mapSequential
-import it.softfork.shijianji.utils.RichUri
+import it.softfork.shijianji.utils.{RichFutureResponse, RichUri}
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 import play.api.libs.json.JsonNaming.SnakeCase
 import play.api.libs.json._
 import tech.minna.playjson.macros.{json, jsonFlat}
 
-import scala.async.Async.{async, await}
-import scala.collection.immutable
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
-import scala.util.control.NonFatal
 
 @jsonFlat case class TradeId(value: Int) extends AnyVal
 @jsonFlat case class ProductId(value: String) extends AnyVal
@@ -165,23 +160,12 @@ class CoinbasePro(
   def products: Future[Seq[CoinbaseProduct]] = {
     val uri: Uri = baseUrl / "products"
 
-    get(uri).flatMap { response =>
-      if (response.status.isSuccess()) {
-//          response.entity.toStrict(300.millis).map(_.data).map(x => println(x.utf8String))
-        Unmarshal(response.entity)
-          .to[Seq[CoinbaseProduct]]
-          .map { products =>
-            logger.debug(s"Fetched ${products.length} products")
-            products
-          }
-          .recover {
-            case ex => throw new RuntimeException("Error", ex)
-          }
-      } else {
-        Unmarshal(response.entity).to[ErrorResponse].map(x => logger.error(x.message))
-        throw new RuntimeException(s"$response")
+    get(uri)
+      .asSuccessful[Seq[CoinbaseProduct]]
+      .map { products =>
+        logger.debug(s"Fetched ${products.length} products")
+        products
       }
-    }
   }
 
   def fillsByProductId(productId: ProductId): Future[Seq[Fill]] = {
@@ -193,17 +177,12 @@ class CoinbasePro(
         case None => baseUri ? s"product_id=${productId.value}"
       }
 
-      val futureResult = get(uri).flatMap { response =>
-        if (response.status.isSuccess()) {
-          Unmarshal(response.entity).to[Seq[Fill]].map { fills: Seq[Fill] =>
-            logger.debug(s"Fetched ${fills.length} fills")
-            fills
-          }
-        } else {
-          Unmarshal(response.entity).to[ErrorResponse].map(x => logger.error(x.message))
-          throw new RuntimeException(s"$response")
+      val futureResult = get(uri)
+        .asSuccessful[Seq[Fill]]
+        .map { fills =>
+          logger.debug(s"Fetched ${fills.length} fills")
+          fills
         }
-      }
 
       futureResult.flatMap { currentFills: Seq[Fill] =>
         // The result will be empty if previous page was the last page
@@ -239,28 +218,15 @@ class CoinbasePro(
   def accounts: Future[Seq[Account]] = {
     import Account.formatter
 
-    // If don't include "?" it will get invalid signature error from coinbase pro
+    // Need to include "?" otherwise it will get invalid signature error from coinbase pro
     val uri: Uri = (baseUrl / "accounts") ? ""
 
-    get(uri).flatMap { response =>
-      if (response.status.isSuccess()) {
-        //          response.entity.toStrict(300.millis).map(_.data).map(x => println(x.utf8String))
-        Unmarshal(response.entity)
-          .to[Seq[Account]]
-          .map { accounts =>
-            logger.debug(s"Fetched ${accounts.length} accounts")
-            accounts
-          }
-          .recover {
-            case ex => throw new RuntimeException("Error", ex)
-          }
-      } else {
-        Unmarshal(response.entity).to[ErrorResponse].map { errorResponse =>
-          logger.error(s"Failed to get response from $uri! Message: ${errorResponse.message}")
-        }
-        throw new RuntimeException(s"$response")
+    get(uri)
+      .asSuccessful[Seq[Account]]
+      .map { accounts =>
+        logger.debug(s"Fetched ${accounts.length} accounts")
+        accounts
       }
-    }
   }
 
   def time: Future[String] = {
@@ -270,7 +236,6 @@ class CoinbasePro(
       if (response.status.isSuccess()) {
         response.entity.toStrict(1.second).map(_.data.utf8String)
       } else {
-        Unmarshal(response.entity).to[ErrorResponse].map(x => logger.error(x.message))
         throw new RuntimeException(s"$response")
       }
     }
