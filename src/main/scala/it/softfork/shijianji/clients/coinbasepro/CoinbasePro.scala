@@ -24,9 +24,6 @@ import tech.minna.playjson.macros.{json, jsonFlat}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
 
-@jsonFlat case class TradeId(value: Int) extends AnyVal
-@jsonFlat case class ProductId(value: String) extends AnyVal
-@jsonFlat case class OrderId(value: UUID) extends AnyVal
 case class Price(value: BigDecimal) extends AnyVal
 case class Size(value: BigDecimal) extends AnyVal
 
