@@ -166,22 +166,22 @@ class CoinbasePro(
     val uri: Uri = baseUrl / "products"
 
     get(uri).flatMap { response =>
-        if (response.status.isSuccess()) {
+      if (response.status.isSuccess()) {
 //          response.entity.toStrict(300.millis).map(_.data).map(x => println(x.utf8String))
-          Unmarshal(response.entity)
-            .to[Seq[CoinbaseProduct]]
-            .map { products =>
-              logger.debug(s"Fetched ${products.length} products")
-              products
-            }
-            .recover {
-              case ex => throw new RuntimeException("Error", ex)
-            }
-        } else {
-          Unmarshal(response.entity).to[ErrorResponse].map(x => logger.error(x.message))
-          throw new RuntimeException(s"$response")
-        }
+        Unmarshal(response.entity)
+          .to[Seq[CoinbaseProduct]]
+          .map { products =>
+            logger.debug(s"Fetched ${products.length} products")
+            products
+          }
+          .recover {
+            case ex => throw new RuntimeException("Error", ex)
+          }
+      } else {
+        Unmarshal(response.entity).to[ErrorResponse].map(x => logger.error(x.message))
+        throw new RuntimeException(s"$response")
       }
+    }
   }
 
   def fillsByProductId(productId: ProductId): Future[Seq[Fill]] = {
@@ -194,16 +194,16 @@ class CoinbasePro(
       }
 
       val futureResult = get(uri).flatMap { response =>
-          if (response.status.isSuccess()) {
-            Unmarshal(response.entity).to[Seq[Fill]].map { fills: Seq[Fill] =>
-              logger.debug(s"Fetched ${fills.length} fills")
-              fills
-            }
-          } else {
-            Unmarshal(response.entity).to[ErrorResponse].map(x => logger.error(x.message))
-            throw new RuntimeException(s"$response")
+        if (response.status.isSuccess()) {
+          Unmarshal(response.entity).to[Seq[Fill]].map { fills: Seq[Fill] =>
+            logger.debug(s"Fetched ${fills.length} fills")
+            fills
           }
+        } else {
+          Unmarshal(response.entity).to[ErrorResponse].map(x => logger.error(x.message))
+          throw new RuntimeException(s"$response")
         }
+      }
 
       futureResult.flatMap { currentFills: Seq[Fill] =>
         // The result will be empty if previous page was the last page
@@ -223,7 +223,8 @@ class CoinbasePro(
   }
 
   def allFills: Future[Seq[Fill]] = {
-    val source: Source[CoinbaseProduct, NotUsed] = Source.fromFuture(products).flatMapConcat(products => Source.fromIterator(()=>products.toIterator))
+    val source: Source[CoinbaseProduct, NotUsed] =
+      Source.fromFuture(products).flatMapConcat(products => Source.fromIterator(() => products.toIterator))
     source
       .mapAsyncUnordered(10) { product =>
         fillsByProductId(product.id)
@@ -235,34 +236,34 @@ class CoinbasePro(
       }
   }
 
-  def accounts = {
+  def accounts: Future[Seq[Account]] = {
     import Account.formatter
 
     // If don't include "?" it will get invalid signature error from coinbase pro
     val uri: Uri = (baseUrl / "accounts") ? ""
 
     get(uri).flatMap { response =>
-        if (response.status.isSuccess()) {
-          //          response.entity.toStrict(300.millis).map(_.data).map(x => println(x.utf8String))
-          Unmarshal(response.entity)
-            .to[Seq[Account]]
-            .map { accounts =>
-              logger.debug(s"Fetched ${accounts.length} accounts")
-              accounts
-            }
-            .recover {
-              case ex => throw new RuntimeException("Error", ex)
-            }
-        } else {
-          Unmarshal(response.entity).to[ErrorResponse].map { errorResponse =>
-            logger.error(s"Failed to get response from $uri! Message: ${errorResponse.message}")
+      if (response.status.isSuccess()) {
+        //          response.entity.toStrict(300.millis).map(_.data).map(x => println(x.utf8String))
+        Unmarshal(response.entity)
+          .to[Seq[Account]]
+          .map { accounts =>
+            logger.debug(s"Fetched ${accounts.length} accounts")
+            accounts
           }
-          throw new RuntimeException(s"$response")
+          .recover {
+            case ex => throw new RuntimeException("Error", ex)
+          }
+      } else {
+        Unmarshal(response.entity).to[ErrorResponse].map { errorResponse =>
+          logger.error(s"Failed to get response from $uri! Message: ${errorResponse.message}")
         }
+        throw new RuntimeException(s"$response")
       }
+    }
   }
 
-  def time = {
+  def time: Future[String] = {
     val uri: Uri = baseUrl / "time"
 
     get(uri).flatMap { response =>
