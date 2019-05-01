@@ -4,7 +4,7 @@ organization := "it.softfork"
 
 version := "0.1"
 
-scalaVersion := "2.12.6"
+scalaVersion := "2.12.8"
 
 val akkaStreamVersion = "2.5.9"
 val akkaHttpVersion = "10.0.9"
