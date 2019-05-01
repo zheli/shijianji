@@ -62,7 +62,9 @@ case class Deposit(
   fee: Option[Amount],
   platform: String, // Use String for now
   externalId: String
-) extends NonTradingTransaction
+) extends NonTradingTransaction {
+   require(amount.value >= 0, "Deposit amount should be positive!")
+ }
 
 case class Withdraw(
   user: User,
@@ -71,4 +73,6 @@ case class Withdraw(
   fee: Option[Amount],
   platform: String, // Use String for now
   externalId: String
-) extends NonTradingTransaction
+) extends NonTradingTransaction {
+  require(amount.value <= 0, "Withdraw amount should be negative!")
+}
