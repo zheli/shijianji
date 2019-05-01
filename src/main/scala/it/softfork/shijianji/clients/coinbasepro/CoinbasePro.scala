@@ -24,9 +24,6 @@ import tech.minna.playjson.macros.{json, jsonFlat}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
 
-case class Price(value: BigDecimal) extends AnyVal
-case class Size(value: BigDecimal) extends AnyVal
-
 case class Fill(
   tradeId: TradeId,
   productId: ProductId,
@@ -56,7 +53,7 @@ case class CoinbaseProduct(
 
 object Fill {
 
-  def toTransaction(user: User, fill: Fill): Trade = {
+  def toTrade(user: User, fill: Fill): Trade = {
     val fee = fill.fee.map(Amount(_, fill.soldAmount.currency))
 
     Trade(
@@ -72,10 +69,6 @@ object Fill {
   }
 }
 
-@json case class ErrorResponse(
-  message: String
-)
-
 object CoinbasePro {
 
   def apply(
@@ -88,12 +81,6 @@ object CoinbasePro {
   }
 
   implicit val config = JsonConfiguration(SnakeCase)
-  implicit val priceReads: Reads[Price] = Reads[Price] { json =>
-    json.validate[String].map(s => Price(BigDecimal(s)))
-  }
-  implicit val sizeReads: Reads[Size] = Reads[Size] { json =>
-    json.validate[String].map(s => Size(BigDecimal(s)))
-  }
   implicit val fillReads: Reads[Fill] = Json.reads[Fill]
   implicit val coinbaseProductReads: Reads[CoinbaseProduct] = Json.reads[CoinbaseProduct]
 }
@@ -142,7 +129,7 @@ class CoinbasePro(
       RawHeader("CB-ACCESS-KEY", apiKey),
       RawHeader("CB-ACCESS-SIGN", signature),
       RawHeader("CB-ACCESS-TIMESTAMP", timestamp.toString),
-      RawHeader("CB-ACCESS-PASSPHRASE", passphrase),
+      RawHeader("CB-ACCESS-PASSPHRASE", passphrase)
     )
   }
 
@@ -212,6 +199,24 @@ class CoinbasePro(
       }
   }
 
+  def allTransfers: Future[Seq[AccountActivity]] = {
+    val source: Source[Account, NotUsed] =
+      Source.fromFuture(accounts).flatMapConcat(accounts => Source.fromIterator(() => accounts.toIterator))
+    source
+      .mapAsyncUnordered(10) { account: Account =>
+        accountActivities(account.id)
+      }
+      .mapConcat { activities =>
+        activities
+          .filter(_.`type` != "transfer") // we only care about deposit and withdraw
+          .to[collection.immutable.Seq]
+      }
+      .runWith(Sink.seq)
+      .collect {
+        case activities: Seq[AccountActivity] => activities
+      }
+  }
+
   def accounts: Future[Seq[Account]] = {
     import Account.formatter
 
@@ -223,6 +228,25 @@ class CoinbasePro(
       .map { accounts =>
         logger.debug(s"Fetched ${accounts.length} accounts")
         accounts
+      }
+  }
+
+  def accountActivities(accountId: AccountId): Future[Seq[AccountActivity]] = {
+    import AccountActivity.formatter
+
+    val uri: Uri = (baseUrl / "accounts" / accountId.value.toString / "ledger") ? ""
+
+    // get(uri).flatMap { response =>
+    //   if (response.status.isSuccess()) {
+    //     response.entity.toStrict(300.millis).map(_.data).map(x => println(x.utf8String))
+    //     Future(Seq.empty[AccountActivity])
+    //   } else throw new RuntimeException(s"$response")
+    // }
+    get(uri)
+      .asSuccessful[Seq[AccountActivity]]
+      .map { accountActivities =>
+        logger.debug(s"Fetched ${accountActivities.length} account activities")
+        accountActivities
       }
   }
 
