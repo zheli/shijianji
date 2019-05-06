@@ -170,8 +170,7 @@ class CoinbasePro(
 
       futureResult.flatMap { currentFills: Seq[Fill] =>
         // The result will be empty if previous page was the last page
-        // Or when the number of results returned is less than page limit
-        if (currentFills.isEmpty || currentFills.length < pageLimit) {
+        if (currentFills.isEmpty) {
           Future(totalFills)
         } else {
           val oldestCurrentFill = currentFills.reverse.head
@@ -188,6 +187,7 @@ class CoinbasePro(
   def allFills: Future[Seq[Fill]] = {
     val source: Source[CoinbaseProduct, NotUsed] =
       Source.fromFuture(products).flatMapConcat(products => Source.fromIterator(() => products.toIterator))
+
     source
       .mapAsyncUnordered(10) { product =>
         fillsByProductId(product.id)
@@ -199,22 +199,15 @@ class CoinbasePro(
       }
   }
 
-  def allTransfers: Future[Seq[AccountActivity]] = {
+  def allAccountsActivities: Future[Seq[(Account, Seq[AccountActivity])]] = {
     val source: Source[Account, NotUsed] =
       Source.fromFuture(accounts).flatMapConcat(accounts => Source.fromIterator(() => accounts.toIterator))
+
     source
       .mapAsyncUnordered(10) { account: Account =>
-        accountActivities(account.id)
-      }
-      .mapConcat { activities =>
-        activities
-          .filter(_.`type` != "transfer") // we only care about deposit and withdraw
-          .to[collection.immutable.Seq]
+        accountActivities(account.id).map((account, _))
       }
       .runWith(Sink.seq)
-      .collect {
-        case activities: Seq[AccountActivity] => activities
-      }
   }
 
   def accounts: Future[Seq[Account]] = {
@@ -234,20 +227,35 @@ class CoinbasePro(
   def accountActivities(accountId: AccountId): Future[Seq[AccountActivity]] = {
     import AccountActivity.formatter
 
-    val uri: Uri = (baseUrl / "accounts" / accountId.value.toString / "ledger") ? ""
+    val baseUri: Uri = baseUrl / "accounts" / accountId.value.toString / "ledger"
 
-    // get(uri).flatMap { response =>
-    //   if (response.status.isSuccess()) {
-    //     response.entity.toStrict(300.millis).map(_.data).map(x => println(x.utf8String))
-    //     Future(Seq.empty[AccountActivity])
-    //   } else throw new RuntimeException(s"$response")
-    // }
-    get(uri)
-      .asSuccessful[Seq[AccountActivity]]
-      .map { accountActivities =>
-        logger.debug(s"Fetched ${accountActivities.length} account activities")
-        accountActivities
+    def fetch(oldest: Option[AccountActivityId], totalActivities: Seq[AccountActivity]): Future[Seq[AccountActivity]] = {
+      val uri = oldest match {
+        case Some(id) => baseUri ? s"after=${id.value}"
+        case None => baseUri ? ""
       }
+
+      val futureResult = get(uri)
+        .asSuccessful[Seq[AccountActivity]]
+        .map { activities =>
+          logger.debug(s"Fetched ${activities.length} activities")
+          activities
+        }
+
+      futureResult.flatMap { currentActivities: Seq[AccountActivity] =>
+        // The result will be empty if previous page was the last page
+        if (currentActivities.isEmpty) {
+          Future(totalActivities)
+        } else {
+          val oldestCurrent = currentActivities.reverse.head
+          fetch(Some(oldestCurrent.id), currentActivities ++ totalActivities)
+        }
+      }
+    }
+
+    import it.softfork.shijianji.utils.zonedDateTimeOrdering
+
+    fetch(oldest = None, totalActivities = Seq.empty[AccountActivity]).map(_.sortBy(_.createdAt))
   }
 
   def time: Future[String] = {

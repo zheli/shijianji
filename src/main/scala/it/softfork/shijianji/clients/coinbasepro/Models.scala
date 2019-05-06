@@ -3,7 +3,7 @@ package it.softfork.shijianji.clients.coinbasepro
 import java.time.ZonedDateTime
 import java.util.UUID
 
-import it.softfork.shijianji.Currency
+import it.softfork.shijianji._
 import play.api.libs.json.JsonConfiguration.Aux
 import play.api.libs.json.JsonNaming.SnakeCase
 import play.api.libs.json.{Format, Json, JsonConfiguration, Reads}
@@ -44,8 +44,10 @@ object Account {
   implicit val formatter: Format[Account] = Json.format[Account]
 }
 
+@jsonFlat case class AccountActivityId(value: Int) extends AnyVal
+
 case class AccountActivity(
-  id: Int,
+  id: AccountActivityId,
   createdAt: ZonedDateTime,
   amount: BigDecimal,
   balance: BigDecimal,
