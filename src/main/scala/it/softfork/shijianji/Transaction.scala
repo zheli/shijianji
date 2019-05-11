@@ -29,7 +29,7 @@ case class Amount(
   }
 }
 
-sealed trait Transaction {
+sealed trait Transaction extends Product {
   val user: User
   val timestamp: ZonedDateTime
   val fee: Option[Amount]

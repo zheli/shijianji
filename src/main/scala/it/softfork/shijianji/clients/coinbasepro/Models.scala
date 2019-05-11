@@ -36,7 +36,7 @@ case class Account(
   balance: BigDecimal,
   available: BigDecimal,
   hold: BigDecimal,
-  profileId:UUID
+  profileId: UUID
 )
 
 object Account {
@@ -59,4 +59,30 @@ case class AccountActivity(
 object AccountActivity {
   implicit val config: Aux[Json.MacroOptions] = JsonConfiguration(SnakeCase)
   implicit val formatter: Format[AccountActivity] = Json.format[AccountActivity]
+
+  def transfers(user: User, account: Account, activities: Seq[AccountActivity]): Seq[NonTradingTransaction] = {
+    activities
+      .filter(_.`type` == "transfer")
+      .map { activity =>
+        if (activity.amount >= 0) {
+          Deposit(
+            user,
+            activity.createdAt,
+            Amount(activity.amount, Currency("EUR")), // fix currency
+            fee = None,
+            platform = "CoinbasePro", // Use String for now
+            externalId = activity.id.toString
+          )
+        } else {
+          Withdraw(
+            user,
+            activity.createdAt,
+            Amount(activity.amount, Currency("EUR")), // fix currency
+            fee = None,
+            platform = "CoinbasePro", // Use String for now
+            externalId = activity.id.toString
+          )
+        }
+      }
+  }
 }
