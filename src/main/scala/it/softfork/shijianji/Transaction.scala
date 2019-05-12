@@ -27,6 +27,8 @@ case class Amount(
     }
     s"$updatedValue ${ currency.value }"
   }
+
+  def negate: Amount = Amount(value * -1, currency)
 }
 
 sealed trait Transaction extends Product {
@@ -34,7 +36,24 @@ sealed trait Transaction extends Product {
   val timestamp: ZonedDateTime
   val fee: Option[Amount]
   val platform: String
-  val externalId: String
+  val externalId: Option[String]
+  val comment: Option[String]
+}
+
+object Transaction {
+  def balance(currency: Currency, transactions: Seq[Transaction]) = {
+    val transactionsForCurrency = transactions.filter {
+      case t: Trade => t.soldAmount.currency == currency || t.boughtAmount.currency == currency
+      case non: NonTradingTransaction => non.amount.currency == currency
+    }
+
+    transactionsForCurrency.map {
+      case ts: Trade if (ts.soldAmount.currency == currency) => ts.soldAmount.negate
+      case tb: Trade if (tb.boughtAmount.currency == currency) => tb.boughtAmount
+      case non: NonTradingTransaction => non.amount
+    }
+      .fold(Amount(BigDecimal(0), currency))( (a1: Amount, a2: Amount) => Amount(a1.value + a2.value, currency) )
+  }
 }
 
 case class Trade(
@@ -44,8 +63,8 @@ case class Trade(
   boughtAmount: Amount,
   fee: Option[Amount],
   platform: String, // Use String for now
-  externalId: String,
-  extraJsonData: Option[JsValue]
+  comment: Option[String],
+  externalId: Option[String]
 ) extends Transaction {
   def buyingPrice = soldAmount.value / boughtAmount.value
   def sellingPrice = boughtAmount.value / soldAmount.value
@@ -53,6 +72,7 @@ case class Trade(
 
 sealed trait NonTradingTransaction extends Transaction {
   def amount: Amount
+  def toCsv: String = s"$timestamp, ${amount.value}, ${amount.currency.value}, $platform"
 }
 
 case class Deposit(
@@ -61,10 +81,11 @@ case class Deposit(
   amount: Amount,
   fee: Option[Amount],
   platform: String, // Use String for now
-  externalId: String
+  comment: Option[String],
+  externalId: Option[String]
 ) extends NonTradingTransaction {
-   require(amount.value >= 0, "Deposit amount should be positive!")
- }
+  require(amount.value >= 0, "Deposit amount should be positive!")
+}
 
 case class Withdraw(
   user: User,
@@ -72,7 +93,8 @@ case class Withdraw(
   amount: Amount,
   fee: Option[Amount],
   platform: String, // Use String for now
-  externalId: String
+  comment: Option[String],
+  externalId: Option[String]
 ) extends NonTradingTransaction {
   require(amount.value <= 0, "Withdraw amount should be negative!")
 }

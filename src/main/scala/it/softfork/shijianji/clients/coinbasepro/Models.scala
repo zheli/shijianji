@@ -71,7 +71,8 @@ object AccountActivity {
             Amount(activity.amount, Currency("EUR")), // fix currency
             fee = None,
             platform = "CoinbasePro", // Use String for now
-            externalId = activity.id.toString
+            comments = None,
+            externalId = Some(activity.id.toString)
           )
         } else {
           Withdraw(
@@ -80,7 +81,8 @@ object AccountActivity {
             Amount(activity.amount, Currency("EUR")), // fix currency
             fee = None,
             platform = "CoinbasePro", // Use String for now
-            externalId = activity.id.toString
+            comments = None,
+            externalId = Some(activity.id.toString)
           )
         }
       }
