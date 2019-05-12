@@ -35,7 +35,7 @@ class ModelSpec extends FlatSpec with Matchers {
         productId = ProductId("BTC-USD"),
         price = Price(10.00),
         size = Size(0.01),
-        createdAt = ZonedDateTime.now(),
+        createdAt = ZonedDateTime.parse("2014-11-07T22:19:28.578544Z"),
         liquidity = "T",
         orderId = UUID.fromString("d50ec984-77a8-460a-b958-66f114b0de9b"),
         settled = true,
