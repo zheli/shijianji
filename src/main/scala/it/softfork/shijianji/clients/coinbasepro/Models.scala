@@ -52,8 +52,7 @@ case class AccountActivity(
   amount: BigDecimal,
   balance: BigDecimal,
   `type`: String // Use String for now
-  // Skip details for now
-  // details
+  // details: Details Skip details for now
 )
 
 object AccountActivity {
@@ -71,7 +70,7 @@ object AccountActivity {
             Amount(activity.amount, Currency("EUR")), // fix currency
             fee = None,
             platform = "CoinbasePro", // Use String for now
-            comments = None,
+            comment = None,
             externalId = Some(activity.id.toString)
           )
         } else {
@@ -81,7 +80,7 @@ object AccountActivity {
             Amount(activity.amount, Currency("EUR")), // fix currency
             fee = None,
             platform = "CoinbasePro", // Use String for now
-            comments = None,
+            comment = None,
             externalId = Some(activity.id.toString)
           )
         }

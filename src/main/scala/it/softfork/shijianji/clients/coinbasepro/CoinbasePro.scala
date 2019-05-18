@@ -63,7 +63,7 @@ object Fill {
       boughtAmount = fill.boughtAmount,
       fee = fee,
       platform = "CoinbasePro", // Use String for now
-      comments = None,
+      comment = None,
       externalId = Some(fill.tradeId.value.toString)
     )
   }
