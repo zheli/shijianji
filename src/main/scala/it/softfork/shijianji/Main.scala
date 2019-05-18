@@ -40,7 +40,7 @@ object Main extends App with StrictLogging {
 
     logger.debug(s"Found ${fills.length} filled orders")
     fills.foreach { fill =>
-      val transaction: Trade = Fill.toTransaction(user, fill)
+      val transaction: Trade = Fill.toTrade(user, fill)
       println(fill)
       println(transaction)
       transaction.fee.foreach(f => logger.debug(s"Fee: $f"))
