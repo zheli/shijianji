@@ -24,53 +24,7 @@ import tech.minna.playjson.macros.{json, jsonFlat}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
 
-case class Fill(
-  tradeId: TradeId,
-  productId: ProductId,
-  price: Price,
-  size: Size,
-  orderId: UUID,
-  liquidity: String, // Use string for now
-  createdAt: ZonedDateTime,
-  fee: Option[BigDecimal],
-  settled: Boolean,
-  side: String // Use string for now
-) {
-  val boughtCurrency: String = productId.value.split("-").head
-  val soldCurrency: String = productId.value.split("-").tail.head
-  val soldAmount = Amount(value = price.value * size.value, currency = Currency(soldCurrency))
-  val boughtAmount = Amount(value = size.value, currency = Currency(boughtCurrency))
-}
-
-case class CoinbaseProduct(
-  id: ProductId,
-  baseCurrency: Currency,
-  quoteCurrency: Currency,
-  baseMinSize: String,
-  baseMaxSize: String,
-  quoteIncrement: String
-)
-
-object Fill {
-
-  def toTrade(user: User, fill: Fill): Trade = {
-    val fee = fill.fee.map(Amount(_, fill.soldAmount.currency))
-
-    Trade(
-      user = user,
-      timestamp = fill.createdAt,
-      soldAmount = fill.soldAmount,
-      boughtAmount = fill.boughtAmount,
-      fee = fee,
-      platform = "CoinbasePro", // Use String for now
-      comment = None,
-      externalId = Some(fill.tradeId.value.toString)
-    )
-  }
-}
-
 object CoinbasePro {
-
   def apply(
     apiKey: String,
     apiSecret: String,

@@ -9,6 +9,52 @@ import play.api.libs.json.JsonNaming.SnakeCase
 import play.api.libs.json.{Format, Json, JsonConfiguration, Reads}
 import tech.minna.playjson.macros.{json, jsonFlat}
 
+case class CoinbaseProduct(
+  id: ProductId,
+  baseCurrency: Currency,
+  quoteCurrency: Currency,
+  baseMinSize: String,
+  baseMaxSize: String,
+  quoteIncrement: String
+)
+
+case class Fill(
+  tradeId: TradeId,
+  productId: ProductId,
+  price: Price,
+  size: Size,
+  orderId: UUID,
+  liquidity: String, // Use string for now
+  createdAt: ZonedDateTime,
+  fee: Option[BigDecimal],
+  settled: Boolean,
+  side: String // Use string for now
+) {
+  val boughtCurrency: String = productId.value.split("-").head
+  val soldCurrency: String = productId.value.split("-").tail.head
+  val soldAmount = Amount(value = price.value * size.value, currency = Currency(soldCurrency))
+  val boughtAmount = Amount(value = size.value, currency = Currency(boughtCurrency))
+  val externalId = s"trade:${tradeId.value}"
+}
+
+object Fill {
+
+  def toTrade(user: User, fill: Fill): Trade = {
+    val fee = fill.fee.map(Amount(_, fill.soldAmount.currency))
+
+    Trade(
+      user = user,
+      timestamp = fill.createdAt,
+      soldAmount = fill.soldAmount,
+      boughtAmount = fill.boughtAmount,
+      fee = fee,
+      platform = "CoinbasePro", // Use String for now
+      comment = None,
+      externalId = Some(fill.externalId)
+    )
+  }
+}
+
 @jsonFlat case class AccountId(value: UUID) extends AnyVal
 @jsonFlat case class TradeId(value: Int) extends AnyVal
 @jsonFlat case class ProductId(value: String) extends AnyVal
@@ -53,7 +99,9 @@ case class AccountActivity(
   balance: BigDecimal,
   `type`: String // Use String for now
   // details: Details Skip details for now
-)
+) {
+  def externalId = s"activity:${id.value}"
+}
 
 object AccountActivity {
   implicit val config: Aux[Json.MacroOptions] = JsonConfiguration(SnakeCase)
@@ -71,7 +119,7 @@ object AccountActivity {
             fee = None,
             platform = "CoinbasePro", // Use String for now
             comment = None,
-            externalId = Some(activity.id.toString)
+            externalId = Some(activity.externalId)
           )
         } else {
           Withdraw(
@@ -81,7 +129,7 @@ object AccountActivity {
             fee = None,
             platform = "CoinbasePro", // Use String for now
             comment = None,
-            externalId = Some(activity.id.toString)
+            externalId = Some(activity.externalId)
           )
         }
       }
