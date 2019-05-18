@@ -29,6 +29,16 @@ case class Amount(
   }
 
   def negate: Amount = Amount(value * -1, currency)
+
+  def +(that: Amount) = {
+    require(currency == that.currency)
+    Amount(value + that.value, currency)
+  }
+
+  def -(that: Amount) = {
+    require(currency == that.currency)
+    Amount(value - that.value, currency)
+  }
 }
 
 sealed trait Transaction extends Product {
@@ -48,11 +58,23 @@ object Transaction {
     }
 
     transactionsForCurrency.map {
-      case ts: Trade if (ts.soldAmount.currency == currency) => ts.soldAmount.negate
-      case tb: Trade if (tb.boughtAmount.currency == currency) => tb.boughtAmount
-      case non: NonTradingTransaction => non.amount
+      case ts: Trade if (ts.soldAmount.currency == currency) =>
+        ts.fee match {
+          case Some(fee) if fee.currency == currency => ts.soldAmount.negate - fee
+          case _ => ts.soldAmount.negate
+        }
+      case tb: Trade if (tb.boughtAmount.currency == currency) =>
+        tb.fee match {
+          case Some(fee) if fee.currency == currency => tb.boughtAmount - fee
+          case _ => tb.boughtAmount
+        }
+      case non: NonTradingTransaction =>
+        non.fee match {
+          case Some(fee) => non.amount - fee
+          case _ => non.amount
+        }
     }
-      .fold(Amount(BigDecimal(0), currency))( (a1: Amount, a2: Amount) => Amount(a1.value + a2.value, currency) )
+      .fold(Amount(BigDecimal(0), currency))( (a1: Amount, a2: Amount) => a1 + a2 )
   }
 }
 
