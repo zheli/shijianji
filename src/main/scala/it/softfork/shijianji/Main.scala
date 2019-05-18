@@ -7,7 +7,6 @@ import akka.stream.{ActorMaterializer, ActorMaterializerSettings}
 import com.typesafe.scalalogging.StrictLogging
 import it.softfork.shijianji.clients.coinbasepro
 import it.softfork.shijianji.clients.coinbasepro.{CoinbasePro, Fill, ProductId}
-import slick.jdbc.H2Profile.api._
 
 import scala.concurrent.Future
 import scala.util.control.NonFatal
@@ -28,7 +27,7 @@ object Main extends App with StrictLogging {
   val user = User(id = UserId(UUID.randomUUID()), email = "test@ha.com")
 
   val coinbaseSandbox = CoinbasePro(coinbaseproSandboxApiKey, coinbaseproSandboxApiSecret, coinbaseproSandboxPass, coinbasepro.sandboxBaseUri)
-  
+
   val resultFuture = for {
     time <- coinbaseSandbox.time
     accounts <- coinbaseSandbox.accounts
