@@ -10,6 +10,7 @@ val akkaStreamVersion = "2.5.9"
 val akkaHttpVersion = "10.0.9"
 libraryDependencies ++= Seq(
   "ch.qos.logback" % "logback-classic" % "1.2.3",
+  "com.github.tototoshi" %% "scala-csv" % "1.3.5",
   "com.typesafe.akka" %% "akka-http" % akkaHttpVersion,
   "com.typesafe.akka" %% "akka-http-core" % akkaHttpVersion,
   "com.typesafe.akka" %% "akka-http-testkit" % akkaHttpVersion % "test",

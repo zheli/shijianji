@@ -115,7 +115,7 @@ object AccountActivity {
           Deposit(
             user,
             activity.createdAt,
-            Amount(activity.amount, Currency("EUR")), // fix currency
+            Amount(activity.amount, account.currency),
             fee = None,
             platform = "CoinbasePro", // Use String for now
             comment = None,
@@ -125,7 +125,7 @@ object AccountActivity {
           Withdraw(
             user,
             activity.createdAt,
-            Amount(activity.amount, Currency("EUR")), // fix currency
+            Amount(activity.amount, account.currency),
             fee = None,
             platform = "CoinbasePro", // Use String for now
             comment = None,
