@@ -11,6 +11,7 @@ val akkaHttpVersion = "10.0.9"
 libraryDependencies ++= Seq(
   "ch.qos.logback" % "logback-classic" % "1.2.3",
   "com.github.tototoshi" %% "scala-csv" % "1.3.5",
+  "com.micronautics" %% "web3j-scala" % "4.2.0" withSources(),
   "com.typesafe.akka" %% "akka-http" % akkaHttpVersion,
   "com.typesafe.akka" %% "akka-http-core" % akkaHttpVersion,
   "com.typesafe.akka" %% "akka-http-testkit" % akkaHttpVersion % "test",
@@ -25,7 +26,11 @@ libraryDependencies ++= Seq(
   "tech.minna" %% "play-json-macros" % "1.0.0"
 )
 
-resolvers += Resolver.bintrayRepo("minna-technologies", "maven")
+resolvers ++= Seq(
+  Resolver.bintrayRepo("minna-technologies", "maven"),
+  "micronautics/scala on bintray" at "http://dl.bintray.com/micronautics/scala",
+  "Ethereum Maven" at "https://dl.bintray.com/ethereum/maven/"
+)
 
 // Needed for play json macros macro annotations
 addCompilerPlugin(
