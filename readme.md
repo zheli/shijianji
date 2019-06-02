@@ -11,7 +11,12 @@
 - [ ] Database support
 
 # Run project
-Launch server:
+
+## Config API credentials for the integrations
+* CoinbasePro
+* Etherscan
+
+## Launch server
 ```$xslt
 sbt
 sbt:shijianji> run
