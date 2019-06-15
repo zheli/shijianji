@@ -5,6 +5,7 @@
 - [x] Base transaction model
 - [x] CSV transaction exporter
 - [ ] Ethereum walllet support
+- [ ] Ethereum ICO support
 - [ ] User support
 - [ ] Binance fetcher
 - [ ] Bittrex fetcher
