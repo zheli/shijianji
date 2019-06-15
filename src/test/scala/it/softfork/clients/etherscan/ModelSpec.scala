@@ -1,5 +1,7 @@
 package it.softfork.clients.etherscan
 
+import it.softfork.shijianji.clients.etherscan._
+import it.softfork.shijianji.clients.etherscan.EtherAddressTransactionsResponse.reader
 import org.scalatest.{FlatSpec, Matchers}
 import play.api.libs.json.Json
 
@@ -55,11 +57,20 @@ class ModelSpec extends FlatSpec with Matchers {
     """.stripMargin
 
   "clients.etherscan" should "parse ethereum account transactions in json " in {
-    val expectedResult = Seq(
-      EtherTransaction(
-        blockNumber = 123,
-        from = "123",
-        to = Option("123")
+    val expectedResult = EtherAccountTransactionsResponse(
+      status = "1",
+      message = "OK",
+      result = Seq(
+        EtherTransaction(
+          blockNumber = 65204,
+          from = "0x3fb1cd2cd96c6d5c0b5eb3322d807b34482481d4",
+          to = Option("0xde0b295669a9fd93d5f28d9ec85e40f4cb697bae")
+        ),
+        EtherTransaction(
+          blockNumber = 65342,
+          from = "0x3fb1cd2cd96c6d5c0b5eb3322d807b34482481d4",
+          to = Option("0xde0b295669a9fd93d5f28d9ec85e40f4cb697bae")
+        )
       )
     )
 
