@@ -8,6 +8,7 @@ import tech.minna.playjson.macros.jsonFlat
 @jsonFlat case class Currency(value: String) extends AnyVal
 
 object Currency {
+
   val fiats: Set[String] = Set(
     "EUR",
     "USD"
@@ -25,7 +26,7 @@ case class Amount(
       } else
         value
     }
-    s"$updatedValue ${ currency.value }"
+    s"$updatedValue ${currency.value}"
   }
 
   def negate: Amount = Amount(value * -1, currency)
@@ -57,24 +58,25 @@ object Transaction {
       case non: NonTradingTransaction => non.amount.currency == currency
     }
 
-    transactionsForCurrency.map {
-      case ts: Trade if (ts.soldAmount.currency == currency) =>
-        ts.fee match {
-          case Some(fee) if fee.currency == currency => ts.soldAmount.negate - fee
-          case _ => ts.soldAmount.negate
-        }
-      case tb: Trade if (tb.boughtAmount.currency == currency) =>
-        tb.fee match {
-          case Some(fee) if fee.currency == currency => tb.boughtAmount - fee
-          case _ => tb.boughtAmount
-        }
-      case non: NonTradingTransaction =>
-        non.fee match {
-          case Some(fee) => non.amount - fee
-          case _ => non.amount
-        }
-    }
-      .fold(Amount(BigDecimal(0), currency))( (a1: Amount, a2: Amount) => a1 + a2 )
+    transactionsForCurrency
+      .map {
+        case ts: Trade if (ts.soldAmount.currency == currency) =>
+          ts.fee match {
+            case Some(fee) if fee.currency == currency => ts.soldAmount.negate - fee
+            case _ => ts.soldAmount.negate
+          }
+        case tb: Trade if (tb.boughtAmount.currency == currency) =>
+          tb.fee match {
+            case Some(fee) if fee.currency == currency => tb.boughtAmount - fee
+            case _ => tb.boughtAmount
+          }
+        case non: NonTradingTransaction =>
+          non.fee match {
+            case Some(fee) => non.amount - fee
+            case _ => non.amount
+          }
+      }
+      .fold(Amount(BigDecimal(0), currency))((a1: Amount, a2: Amount) => a1 + a2)
   }
 }
 

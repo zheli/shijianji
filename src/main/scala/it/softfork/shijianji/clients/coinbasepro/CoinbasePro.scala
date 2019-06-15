@@ -25,6 +25,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
 
 object CoinbasePro {
+
   def apply(
     apiKey: String,
     apiSecret: String,

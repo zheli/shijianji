@@ -7,6 +7,7 @@ import com.github.tototoshi.csv.CSVWriter
 import it.softfork.shijianji._
 
 object Csv {
+
   def toCsvFile(filename: String, transactions: Seq[Transaction]): Unit = {
     val f = new File(filename)
     val writer = CSVWriter.open(f)

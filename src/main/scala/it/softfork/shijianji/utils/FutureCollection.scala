@@ -23,4 +23,3 @@ object FutureCollection {
     next(Vector.empty, xs)
   }
 }
-

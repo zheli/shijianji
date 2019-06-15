@@ -10,16 +10,18 @@ import scala.concurrent.{ExecutionContext, Future}
 
 package object utils {
   implicit class RichUri(uri: Uri) {
+
     def /(path: String): Uri = {
       uri.copy(path = uri.path / path)
     }
 
     def ?(query: String): Uri = {
-      uri.copy(rawQueryString=Some(query))
+      uri.copy(rawQueryString = Some(query))
     }
   }
 
   implicit class RichFutureResponse(future: Future[HttpResponse]) {
+
     def asUnsafe[T](
       implicit ec: ExecutionContext,
       unmarshaller: Unmarshaller[HttpResponse, T],
@@ -40,5 +42,5 @@ package object utils {
     }
   }
 
-  implicit def zonedDateTimeOrdering: Ordering[ZonedDateTime] = Ordering.fromLessThan(_ isBefore _)
+  implicit def zonedDateTimeOrdering: Ordering[ZonedDateTime] = Ordering.fromLessThan(_.isBefore(_))
 }
