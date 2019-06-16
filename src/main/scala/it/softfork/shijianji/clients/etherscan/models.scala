@@ -5,13 +5,17 @@ import play.api.libs.json._
 
 case class EtherTransaction(
   blockNumber: Int,
+  value: BigDecimal,
   from: String,
   to: Option[String]
+  //TOOD add timestamp
 )
 
 object EtherTransaction {
   implicit val etherTransactionReader: Reads[EtherTransaction] = (
     (JsPath \ "blockNumber").read[String].map(_.toInt) and
+      // response value is ETH value * 10^18
+      (JsPath \ "value").read[String].map(BigDecimal(_)/BigDecimal("1000000000000000000")) and
       (JsPath \ "from").read[String] and
       (JsPath \ "to").readNullable[String]
     )(EtherTransaction.apply _)

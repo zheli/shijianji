@@ -21,7 +21,7 @@ class ModelSpec extends FlatSpec with Matchers {
     |            "transactionIndex": "0",
     |            "from": "0x3fb1cd2cd96c6d5c0b5eb3322d807b34482481d4",
     |            "to": "0xde0b295669a9fd93d5f28d9ec85e40f4cb697bae",
-    |            "value": "0",
+    |            "value": "11901464239480000000000000",
     |            "gas": "122261",
     |            "gasPrice": "50000000000",
     |            "isError": "0",
@@ -63,11 +63,13 @@ class ModelSpec extends FlatSpec with Matchers {
       result = Seq(
         EtherTransaction(
           blockNumber = 65204,
+          value = BigDecimal("11901464.23948"),
           from = "0x3fb1cd2cd96c6d5c0b5eb3322d807b34482481d4",
           to = Option("0xde0b295669a9fd93d5f28d9ec85e40f4cb697bae")
         ),
         EtherTransaction(
           blockNumber = 65342,
+          value = BigDecimal("0"),
           from = "0x3fb1cd2cd96c6d5c0b5eb3322d807b34482481d4",
           to = Option("0xde0b295669a9fd93d5f28d9ec85e40f4cb697bae")
         )
