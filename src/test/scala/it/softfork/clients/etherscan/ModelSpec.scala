@@ -63,12 +63,14 @@ class ModelSpec extends FlatSpec with Matchers {
       result = Seq(
         EtherTransaction(
           blockNumber = 65204,
+          hash = "0x98beb27135aa0a25650557005ad962919d6a278c4b3dde7f4f6a3a1e65aa746c",
           value = BigDecimal("11901464.23948"),
           from = "0x3fb1cd2cd96c6d5c0b5eb3322d807b34482481d4",
           to = Option("0xde0b295669a9fd93d5f28d9ec85e40f4cb697bae")
         ),
         EtherTransaction(
           blockNumber = 65342,
+          hash = "0x621de9a006b56c425d21ee0e04ab25866fff4cf606dd5d03cf677c5eb2172161",
           value = BigDecimal("0"),
           from = "0x3fb1cd2cd96c6d5c0b5eb3322d807b34482481d4",
           to = Option("0xde0b295669a9fd93d5f28d9ec85e40f4cb697bae")
