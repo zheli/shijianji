@@ -13,6 +13,7 @@ libraryDependencies ++= Seq(
   "ch.qos.logback" % "logback-classic" % "1.2.3",
   "com.github.tototoshi" %% "scala-csv" % "1.3.5",
   "com.iheart" %% "ficus" % "1.4.5",
+  "it.softfork" %% "debug4s" % "0.0.4",
   "com.micronautics" %% "web3j-scala" % "4.2.0" withSources(),
   "com.typesafe.akka" %% "akka-http" % akkaHttpVersion,
   "com.typesafe.akka" %% "akka-http-core" % akkaHttpVersion,
@@ -27,10 +28,11 @@ libraryDependencies ++= Seq(
   "de.heikoseeberger" %% "akka-http-play-json" % "1.20.0",
   "org.scala-lang.modules" %% "scala-async" % "0.9.7",
   "org.scalatest" %% "scalatest" % "3.0.5" % "test",
-  "tech.minna" %% "play-json-macros" % "1.0.0"
+  "tech.minna" %% "play-json-macros" % "1.0.0",
 )
 
 resolvers ++= Seq(
+  Resolver.bintrayRepo("liuhongchao", "maven"),
   Resolver.bintrayRepo("minna-technologies", "maven"),
   "micronautics/scala on bintray" at "http://dl.bintray.com/micronautics/scala",
   "Ethereum Maven" at "https://dl.bintray.com/ethereum/maven/"
