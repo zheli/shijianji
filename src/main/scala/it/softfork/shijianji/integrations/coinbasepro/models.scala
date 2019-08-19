@@ -1,9 +1,10 @@
-package it.softfork.shijianji.clients.coinbasepro
+package it.softfork.shijianji.integrations.coinbasepro
 
 import java.time.ZonedDateTime
 import java.util.UUID
 
 import it.softfork.shijianji._
+import it.softfork.shijianji.users.User
 import play.api.libs.json.JsonConfiguration.Aux
 import play.api.libs.json.JsonNaming.SnakeCase
 import play.api.libs.json.{Format, Json, JsonConfiguration, Reads}
@@ -77,12 +78,12 @@ object Size {
 }
 
 case class Account(
+  profileId: UUID,
   id: AccountId,
   currency: Currency,
   balance: BigDecimal,
   available: BigDecimal,
-  hold: BigDecimal,
-  profileId: UUID
+  hold: BigDecimal
 )
 
 object Account {

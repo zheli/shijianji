@@ -1,6 +1,4 @@
-package it.softfork.shijianji.clients.etherscan
-
-import java.util.UUID
+package it.softfork.shijianji.integrations.etherscan
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
@@ -10,10 +8,10 @@ import com.micronautics.web3j.Address
 import com.typesafe.scalalogging.StrictLogging
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport
 import it.softfork.shijianji._
-import it.softfork.shijianji.utils.{RichFutureResponse, RichUri}
+import it.softfork.shijianji.users.User
+import it.softfork.shijianji.utils.RichFutureResponse
 
-import scala.concurrent.{ExecutionContext, Future}
-import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext
 
 class Etherscan(config: EtherscanConfig)(
   implicit system: ActorSystem,
@@ -46,7 +44,7 @@ class Etherscan(config: EtherscanConfig)(
       Uri.Query(parameters)
     )
     val request = HttpRequest(uri = uri)
-    val user = User(id = UserId(UUID.randomUUID()), email = "test@ha.com")
+    val user = User.testUser
     Http()
       .singleRequest(request)
       .asSuccessful[EtherAccountTransactionsResponse]

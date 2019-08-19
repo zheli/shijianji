@@ -1,6 +1,5 @@
-package it.softfork.shijianji.clients.coinbasepro
+package it.softfork.shijianji.integrations.coinbasepro
 
-import java.time.ZonedDateTime
 import java.util.{Base64, UUID}
 
 import akka.NotUsed
@@ -13,7 +12,7 @@ import akka.stream.scaladsl.{Sink, Source}
 import com.typesafe.scalalogging.StrictLogging
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport
 import it.softfork.shijianji._
-import it.softfork.shijianji.clients.coinbasepro
+import it.softfork.shijianji.integrations.coinbasepro
 import it.softfork.shijianji.utils.{RichFutureResponse, RichUri}
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
