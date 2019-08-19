@@ -8,7 +8,7 @@ scalaVersion := "2.12.8"
 
 val akkaStreamVersion = "2.5.9"
 val akkaHttpVersion = "10.0.9"
-val slickVersion = "3.3.0"
+val slickVersion = "3.3.1"
 libraryDependencies ++= Seq(
   "ch.qos.logback" % "logback-classic" % "1.2.3",
   "com.github.tototoshi" %% "scala-csv" % "1.3.5",
