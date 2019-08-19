@@ -1,6 +1,6 @@
 package it.softfork.shijianji.clients.etherscan
 
-import java.time.ZonedDateTime
+import java.time.{Instant, ZoneId, ZonedDateTime}
 
 import com.micronautics.web3j.Address
 import it.softfork.debug4s.DebugMacro._
@@ -11,16 +11,17 @@ import play.api.libs.json._
 case class EtherTransaction(
   blockNumber: Int,
   hash: String,
+  timestamp: String,
   value: BigDecimal,
   from: String,
   to: Option[String]
-  //TOOD add timestamp
 )
 
 object EtherTransaction {
   implicit val etherTransactionReader: Reads[EtherTransaction] = (
     (JsPath \ "blockNumber").read[String].map(_.toInt) and
       (JsPath \ "hash").read[String] and
+      (JsPath \ "timeStamp").read[String] and
       // response value is ETH value * 10^18
       (JsPath \ "value").read[String].map(BigDecimal(_)/BigDecimal("1000000000000000000")) and
       (JsPath \ "from").read[String] and
@@ -38,17 +39,17 @@ object EtherTransaction {
         case w: EtherTransaction if (w.from.toLowerCase == lowerCaseAddress) =>
           Withdraw(
             user = user,
-            timestamp = ZonedDateTime.now, // TODO fix this
+            timestamp = ZonedDateTime.ofInstant(Instant.ofEpochSecond(w.timestamp.toLong), ZoneId.of("UTC")),
             amount = Amount(w.value, Currency("ETH")).negate,
             fee = None, // TODO fix this later
             platform =  "ethereum",
             comment = None,
             externalId = Some(w.hash)
           )
-        case d: EtherTransaction if (d.to.map(_.toLowerCase) == Some(lowerCaseAddress)) =>
+        case d: EtherTransaction if d.to.map(_.toLowerCase).contains(lowerCaseAddress) =>
           Deposit(
             user = user,
-            timestamp = ZonedDateTime.now, // TODO fix this
+            timestamp = ZonedDateTime.ofInstant(Instant.ofEpochSecond(d.timestamp.toLong), ZoneId.of("UTC")),
             amount = Amount(d.value, Currency("ETH")),
             fee = None, // TODO fix this later
             platform =  "ethereum",

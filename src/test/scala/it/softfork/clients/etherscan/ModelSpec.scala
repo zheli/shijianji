@@ -1,11 +1,17 @@
 package it.softfork.clients.etherscan
 
+import java.time.{ZoneId, ZonedDateTime}
+import java.util.UUID
+
+import com.micronautics.web3j.Address
+import it.softfork.shijianji.{Amount, Currency, User, UserId, Withdraw}
 import it.softfork.shijianji.clients.etherscan._
 import it.softfork.shijianji.clients.etherscan.EtherAddressTransactionsResponse.reader
 import org.scalatest.{FlatSpec, Matchers}
 import play.api.libs.json.Json
 
 class ModelSpec extends FlatSpec with Matchers {
+  val user = User(id = UserId(UUID.randomUUID()), email = "user@test.com")
   val testJson =
     """
     |{
@@ -64,6 +70,7 @@ class ModelSpec extends FlatSpec with Matchers {
         EtherTransaction(
           blockNumber = 65204,
           hash = "0x98beb27135aa0a25650557005ad962919d6a278c4b3dde7f4f6a3a1e65aa746c",
+          timestamp = "1439232889",
           value = BigDecimal("11901464.23948"),
           from = "0x3fb1cd2cd96c6d5c0b5eb3322d807b34482481d4",
           to = Option("0xde0b295669a9fd93d5f28d9ec85e40f4cb697bae")
@@ -71,6 +78,7 @@ class ModelSpec extends FlatSpec with Matchers {
         EtherTransaction(
           blockNumber = 65342,
           hash = "0x621de9a006b56c425d21ee0e04ab25866fff4cf606dd5d03cf677c5eb2172161",
+          timestamp = "1439235315",
           value = BigDecimal("0"),
           from = "0x3fb1cd2cd96c6d5c0b5eb3322d807b34482481d4",
           to = Option("0xde0b295669a9fd93d5f28d9ec85e40f4cb697bae")
@@ -79,5 +87,34 @@ class ModelSpec extends FlatSpec with Matchers {
     )
 
     Json.parse(testJson).as[EtherAccountTransactionsResponse] shouldBe expectedResult
+  }
+
+  "EtherTransaction" should "be able to convert to NonTradeTransaction" in {
+    val transaction1 = EtherTransaction(
+      blockNumber = 1,
+      hash = "0xffff",
+      timestamp = "1439232889",
+      value = BigDecimal("1"),
+      from = "0x00",
+      to = Option("0x01")
+    )
+    val result = EtherTransaction.toTransaction(
+      user = user,
+      etherTransactions = Seq(transaction1),
+      walletAddress = Address("0x00")
+    )
+    val expectedResult = Seq(
+      Withdraw(
+        user = user,
+        timestamp = ZonedDateTime.of(2015, 8, 10, 18, 54,49, 0, ZoneId.of("UTC")),
+        amount = Amount(-1, Currency("ETH")),
+        fee = None,
+        platform = "ethereum",
+        comment = None,
+        externalId = Some("0xffff")
+      )
+    )
+
+    result shouldBe expectedResult
   }
 }
