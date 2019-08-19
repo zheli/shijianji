@@ -35,7 +35,7 @@ object Main extends App with StrictLogging {
       case List("test-run-etherscan-client") =>
         val etherscan = new Etherscan(config.etherscan)
         val resultFuture = {
-          etherscan.normalTransactions(Address("0x6BeF00Ee10775d4DD51F1ee2443f17B6f298FC9D")).map(debug)
+          etherscan.normalTransactions(Address("0x6BeF00Ee10775d4DD51F1ee2443f17B6f298FC9D")).map(debug(_))
         }
         Await.ready(resultFuture, 1.hours)
         sys.exit()
