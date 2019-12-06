@@ -28,8 +28,10 @@ libraryDependencies ++= Seq(
   "de.heikoseeberger" %% "akka-http-play-json" % "1.20.0",
   "org.scala-lang.modules" %% "scala-async" % "0.9.7",
   "org.scalatest" %% "scalatest" % "3.0.5" % "test",
-  "org.postgresql" % "postgresql" % "42.2.5", //org.postgresql.ds.PGSimpleDataSource dependency
   "tech.minna" %% "play-json-macros" % "1.0.0",
+  // database driver
+  "org.postgresql" % "postgresql" % "42.2.8", //org.postgresql.ds.PGSimpleDataSource dependency
+  "com.h2database" % "h2" % "1.4.199"
 )
 
 resolvers ++= Seq(
@@ -48,3 +50,5 @@ resolvers ++= Seq(
 // Needed for play json macros macro annotations
 addCompilerPlugin(
   "org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
+
+fork in run := true

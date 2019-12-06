@@ -13,6 +13,7 @@
 - [ ] Bittrex fetcher
 - [ ] Coin balance by accounts (exchange, wallet, etc)
 - [ ] Database support
+  - [ ] PostgreSQL support
 
 # Run project
 
