@@ -12,7 +12,6 @@ import it.softfork.debug4s.DebugMacro._
 import it.softfork.shijianji.clients.coinbasepro
 import it.softfork.shijianji.clients.coinbasepro._
 import it.softfork.shijianji.clients.etherscan._
-import it.softfork.shijianji.clients.swedbank.Swedbank
 import it.softfork.shijianji.models._
 import it.softfork.shijianji.users.UserPostgresStorage
 import it.softfork.shijianji.utils.Csv
