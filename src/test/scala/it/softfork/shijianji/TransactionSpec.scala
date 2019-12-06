@@ -4,6 +4,7 @@ import java.time.ZonedDateTime
 import java.util.UUID
 
 import it.softfork.shijianji._
+import it.softfork.shijianji.models.{User, UserId}
 import org.scalatest.{FlatSpec, Matchers}
 
 class TransactionSpec extends FlatSpec with Matchers {

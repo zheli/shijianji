@@ -5,6 +5,7 @@ import java.time.{Instant, ZoneId, ZonedDateTime}
 import com.micronautics.web3j.Address
 import it.softfork.debug4s.DebugMacro._
 import it.softfork.shijianji._
+import it.softfork.shijianji.models.User
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 

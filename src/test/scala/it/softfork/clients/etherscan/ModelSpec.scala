@@ -4,9 +4,10 @@ import java.time.{ZoneId, ZonedDateTime}
 import java.util.UUID
 
 import com.micronautics.web3j.Address
-import it.softfork.shijianji.{Amount, Currency, User, UserId, Withdraw}
+import it.softfork.shijianji.{Amount, Currency, Withdraw}
 import it.softfork.shijianji.clients.etherscan._
 import it.softfork.shijianji.clients.etherscan.EtherAddressTransactionsResponse.reader
+import it.softfork.shijianji.models.{User, UserId}
 import org.scalatest.{FlatSpec, Matchers}
 import play.api.libs.json.Json
 

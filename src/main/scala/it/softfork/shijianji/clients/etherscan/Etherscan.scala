@@ -10,6 +10,7 @@ import com.micronautics.web3j.Address
 import com.typesafe.scalalogging.StrictLogging
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport
 import it.softfork.shijianji._
+import it.softfork.shijianji.models._
 import it.softfork.shijianji.utils.{RichFutureResponse, RichUri}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -46,7 +47,8 @@ class Etherscan(config: EtherscanConfig)(
       Uri.Query(parameters)
     )
     val request = HttpRequest(uri = uri)
-    val user = User(id = UserId(UUID.randomUUID()), email = "test@ha.com")
+    val user = User(uuid = UUID.randomUUID(), email = "test@ha.com")
+//    val user = User(id = Some(1), email = "test@ha.com")
     Http()
       .singleRequest(request)
       .asSuccessful[EtherAccountTransactionsResponse]
