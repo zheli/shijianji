@@ -12,7 +12,7 @@ import org.scalatest.{FlatSpec, Matchers}
 import play.api.libs.json.Json
 
 class ModelSpec extends FlatSpec with Matchers {
-  val user = User(id = UserId(UUID.randomUUID()), email = "user@test.com")
+  val user = User(uuid = UUID.randomUUID(), email = "user@test.com")
   val testJson =
     """
     |{

@@ -50,21 +50,21 @@ object Main extends App with StrictLogging {
 
       case List("setup-db") =>
         val db = Database.forConfig("shijianji.database.postgres2")
-        val userStorage = new UserPostgresStorage("shijianji.database.postgres2")
 //        val users = TableQuery[Users]
 //        val db = Database.forConfig("shijianji.database.h2mem1")
 //        val db2: jdbc.PostgresProfile.backend.Database = Database.forConfig("shijianji.database.postgres2")
         try {
-          Await.result(userStorage.setup, Duration.Inf)
-          Await.result(userStorage.db.run(
-            DBIO.seq(
-              userStorage.users += User("John Doe", uuid = UUID.randomUUID()),
-              userStorage.users += User("Fred Smith", uuid = UUID.randomUUID()),
-              // print the users (select * from USERS)
-              userStorage.users.result.map(println)
-            )
-          ), Duration.Inf)
-        } finally userStorage.db.close()
+          Await.result(
+            db.run(
+              DBIO.seq(
+                UserPostgresStorage.setup,
+                UserPostgresStorage.users += User("John Doe", uuid = UUID.randomUUID()),
+                UserPostgresStorage.users += User("Fred Smith", uuid = UUID.randomUUID()),
+                // print the users (select * from USERS)
+                UserPostgresStorage.users.result.map(println)
+              )
+            ), 1.hour)
+        } finally db.close()
         //        val storage = new Storage(databaseConfig)
 //        val databaseConfig: DatabaseConfig[JdbcProfile] = DatabaseConfig.forConfig[JdbcProfile]("shijianji.database")
 //        val userRepo = new UserRepository(databaseConfig)
