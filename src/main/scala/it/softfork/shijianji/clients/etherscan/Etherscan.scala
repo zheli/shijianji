@@ -48,7 +48,6 @@ class Etherscan(config: EtherscanConfig)(
     )
     val request = HttpRequest(uri = uri)
     val user = User(uuid = UUID.randomUUID(), email = "test@ha.com")
-//    val user = User(id = Some(1), email = "test@ha.com")
     Http()
       .singleRequest(request)
       .asSuccessful[EtherAccountTransactionsResponse]
