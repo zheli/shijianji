@@ -4,10 +4,11 @@ import java.time.ZonedDateTime
 import java.util.UUID
 
 import it.softfork.shijianji._
+import it.softfork.shijianji.models.{User, UserId}
 import org.scalatest.{FlatSpec, Matchers}
 
 class TransactionSpec extends FlatSpec with Matchers {
-  val user = User(id = UserId(UUID.randomUUID()), email = "user@test.com")
+  val user = User(uuid = UUID.randomUUID(), email = "user@test.com")
   val euro = Currency("EUR")
   val btc = Currency("BTC")
   val platform = "CoinbasePro"

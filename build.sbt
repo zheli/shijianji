@@ -8,7 +8,7 @@ scalaVersion := "2.12.8"
 
 val akkaStreamVersion = "2.5.9"
 val akkaHttpVersion = "10.0.9"
-val slickVersion = "3.3.0"
+val slickVersion = "3.3.1"
 libraryDependencies ++= Seq(
   "ch.qos.logback" % "logback-classic" % "1.2.3",
   "com.github.tototoshi" %% "scala-csv" % "1.3.5",
@@ -29,6 +29,9 @@ libraryDependencies ++= Seq(
   "org.scala-lang.modules" %% "scala-async" % "0.9.7",
   "org.scalatest" %% "scalatest" % "3.0.5" % "test",
   "tech.minna" %% "play-json-macros" % "1.0.0",
+  // database driver
+  "org.postgresql" % "postgresql" % "42.2.8", //org.postgresql.ds.PGSimpleDataSource dependency
+  "com.h2database" % "h2" % "1.4.199"
 )
 
 resolvers ++= Seq(
@@ -47,3 +50,5 @@ resolvers ++= Seq(
 // Needed for play json macros macro annotations
 addCompilerPlugin(
   "org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
+
+fork in run := true
