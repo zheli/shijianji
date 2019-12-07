@@ -3,8 +3,6 @@ package it.softfork.shijianji
 import java.util.UUID
 
 import akka.actor.ActorSystem
-import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
 import akka.stream.{ActorMaterializer, ActorMaterializerSettings}
 import com.micronautics.web3j.Address
 import com.typesafe.scalalogging.StrictLogging
@@ -14,18 +12,11 @@ import it.softfork.shijianji.clients.coinbasepro._
 import it.softfork.shijianji.clients.etherscan._
 import it.softfork.shijianji.models._
 import it.softfork.shijianji.users.UserPostgresStorage
-import it.softfork.shijianji.utils.Csv
-import slick.basic.DatabaseConfig
-import slick.jdbc
-//import slick.jdbc.H2Profile.api._
 import slick.jdbc.PostgresProfile.api._
-import slick.jdbc.{JdbcProfile, PostgresProfile}
-import slick.lifted.TableQuery
 
 import scala.concurrent._
 import scala.concurrent.duration._
 import scala.util.control.NonFatal
-import scala.util.{Failure, Success}
 
 // re-use 3rd party client library as much as possible
 object Main extends App with StrictLogging {
@@ -50,9 +41,6 @@ object Main extends App with StrictLogging {
 
       case List("setup-db") =>
         val db = Database.forConfig("shijianji.database.postgres2")
-//        val users = TableQuery[Users]
-//        val db = Database.forConfig("shijianji.database.h2mem1")
-//        val db2: jdbc.PostgresProfile.backend.Database = Database.forConfig("shijianji.database.postgres2")
         try {
           Await.result(
             db.run(
@@ -65,17 +53,6 @@ object Main extends App with StrictLogging {
               )
             ), 1.hour)
         } finally db.close()
-        //        val storage = new Storage(databaseConfig)
-//        val databaseConfig: DatabaseConfig[JdbcProfile] = DatabaseConfig.forConfig[JdbcProfile]("shijianji.database")
-//        val userRepo = new UserRepository(databaseConfig)
-//        val resultFuture= userRepo.list()
-//          .map(debug(_))
-//          .recover {
-//            case NonFatal(ex) =>
-//              logger.error("Failed", ex)
-//              system.terminate()
-//          }
-//        Await.ready(resultFuture, 1.hour)
         sys.exit()
 
       case List("test-run-etherscan-client") =>
