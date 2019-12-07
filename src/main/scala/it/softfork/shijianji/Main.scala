@@ -55,8 +55,12 @@ object Main extends App with StrictLogging {
         } finally db.close()
         sys.exit()
 
+      case List("download-transaction-as-csv") =>
+        Await.ready(Tasks.downloadTransactions(config.integrations), 1.hour)
+        sys.exit()
+
       case List("test-run-etherscan-client") =>
-        val etherscan = new Etherscan(config.etherscan)
+        val etherscan = new Etherscan(config.integrations.etherscan)
         val resultFuture = {
           etherscan.normalTransactions(Address("0x6BeF00Ee10775d4DD51F1ee2443f17B6f298FC9D")).map(debug(_))
         }
