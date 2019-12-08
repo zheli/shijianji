@@ -3,14 +3,15 @@ package it.softfork.shijianji
 import akka.actor.ActorSystem
 import akka.stream.Materializer
 import com.typesafe.scalalogging.StrictLogging
-import it.softfork.shijianji.clients.coinbasepro
-import it.softfork.shijianji.clients.coinbasepro.CoinbasePro
+import it.softfork.debug4s.DebugMacro._
+import it.softfork.shijianji.integrations.coinbasepro
+import it.softfork.shijianji.integrations.coinbasepro.CoinbasePro
 
 import scala.concurrent.ExecutionContext
 
 object Tasks extends StrictLogging {
 
-  def downloadTransactions(
+  def currentPortfolio(
     configs: IntegrationConfig
   )(implicit system: ActorSystem, materializer: Materializer, ec: ExecutionContext) = {
     logger.info("Run task - download transactions")
@@ -21,7 +22,7 @@ object Tasks extends StrictLogging {
     for {
       accounts <- coinbase.accounts
     } yield {
-      println(accounts)
+      accounts.foreach(println(_))
     }
   }
 

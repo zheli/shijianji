@@ -1,4 +1,4 @@
-package it.softfork.shijianji.clients.etherscan
+package it.softfork.shijianji.integrations.etherscan
 
 import java.time.{Instant, ZoneId, ZonedDateTime}
 

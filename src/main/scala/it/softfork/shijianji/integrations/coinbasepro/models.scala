@@ -1,4 +1,4 @@
-package it.softfork.shijianji.clients.coinbasepro
+package it.softfork.shijianji.integrations.coinbasepro
 
 import java.time.ZonedDateTime
 import java.util.UUID
@@ -78,12 +78,12 @@ object Size {
 }
 
 case class Account(
+  profileId: UUID,
   id: AccountId,
   currency: Currency,
   balance: BigDecimal,
   available: BigDecimal,
-  hold: BigDecimal,
-  profileId: UUID
+  hold: BigDecimal
 )
 
 object Account {

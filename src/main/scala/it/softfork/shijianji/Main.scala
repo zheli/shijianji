@@ -7,9 +7,9 @@ import akka.stream.{ActorMaterializer, ActorMaterializerSettings}
 import com.micronautics.web3j.Address
 import com.typesafe.scalalogging.StrictLogging
 import it.softfork.debug4s.DebugMacro._
-import it.softfork.shijianji.clients.coinbasepro
-import it.softfork.shijianji.clients.coinbasepro._
-import it.softfork.shijianji.clients.etherscan._
+import it.softfork.shijianji.integrations.coinbasepro
+import it.softfork.shijianji.integrations.coinbasepro._
+import it.softfork.shijianji.integrations.etherscan._
 import it.softfork.shijianji.models._
 import it.softfork.shijianji.users.UserPostgresStorage
 import slick.jdbc.PostgresProfile.api._
@@ -56,7 +56,7 @@ object Main extends App with StrictLogging {
         sys.exit()
 
       case List("download-transaction-as-csv") =>
-        Await.ready(Tasks.downloadTransactions(config.integrations), 1.hour)
+        Await.ready(Tasks.currentPortfolio(config.integrations), 1.hour)
         sys.exit()
 
       case List("test-run-etherscan-client") =>

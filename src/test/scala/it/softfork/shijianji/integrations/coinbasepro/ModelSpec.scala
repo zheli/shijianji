@@ -1,11 +1,11 @@
-package it.softfork.clients.coinbasepro
+package it.softfork.shijianji.integrations.coinbasepro
 
 import java.time.ZonedDateTime
 import java.util.UUID
 
 import it.softfork.shijianji.{Amount, Currency}
-import it.softfork.shijianji.clients.coinbasepro.CoinbasePro.fillReads
-import it.softfork.shijianji.clients.coinbasepro._
+import it.softfork.shijianji.integrations.coinbasepro.CoinbasePro.fillReads
+import it.softfork.shijianji.integrations.coinbasepro._
 import org.scalatest.{FlatSpec, Matchers}
 import play.api.libs.json.Json
 
