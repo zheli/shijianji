@@ -23,6 +23,29 @@
 * CoinbasePro
 * Etherscan
 
+For local development, you can add a `dev.conf` file in src/man/resources folder:
+```
+shijianji {
+  integrations {
+    coinmarketcap {
+      key = "key here"
+      sandboxKey = "sandbox key here"
+      useSandbox = true
+    }
+
+    coinbasepro {
+      pass = "pass here"
+      apiKey = "key here"
+      apiSecret = "secret here"
+    }
+
+    etherscan {
+      apikey = "key here"
+    }
+  }
+}
+```
+
 ## Launch server
 ```$xslt
 sbt
