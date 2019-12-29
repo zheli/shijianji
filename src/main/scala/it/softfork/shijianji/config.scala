@@ -15,13 +15,15 @@ object ShijianjiConfig {
 }
 
 case class IntegrationConfig (
-  coinmarketcap: CoinmarketcapConfig,
+  coinmarketcap: CoinMarketCapConfig,
   coinbasepro: CoinbaseproConfig,
   etherscan: EtherscanConfig
 )
 
-case class CoinmarketcapConfig(
-  key: String
+case class CoinMarketCapConfig(
+  key: String,
+  sandboxKey: String,
+  useSandbox: Boolean
 )
 
 case class CoinbaseproConfig(

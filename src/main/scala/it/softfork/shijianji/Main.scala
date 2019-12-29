@@ -56,7 +56,7 @@ object Main extends App with StrictLogging {
         sys.exit()
 
       case List("download-transaction-as-csv") =>
-        Await.ready(Tasks.currentPortfolio(config.integrations), 1.hour)
+        Await.ready(Tasks.currentPortfolioToCSV(config.integrations), 1.hour)
         sys.exit()
 
       case List("test-run-etherscan-client") =>

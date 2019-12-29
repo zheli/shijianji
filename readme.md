@@ -6,6 +6,8 @@
 - [x] CoinbasePro(former GDAX) fetcher
 - [x] Base transaction model
 - [x] CSV transaction exporter
+- [ ] CSV portfolio exporter
+  - [ ] Token balances and current value in fiat
 - [ ] Ethereum walllet eth transaction support
 - [ ] Ethereum ICO support
 - [ ] User support
