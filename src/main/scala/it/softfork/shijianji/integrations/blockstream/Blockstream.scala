@@ -6,12 +6,13 @@ import akka.http.scaladsl.model.{HttpRequest, Uri}
 import akka.stream.Materializer
 import com.typesafe.scalalogging.StrictLogging
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport
-import it.softfork.shijianji.models.BitcoinAddress
+import it.softfork.shijianji.CryptoCurrencyAddresses
+import it.softfork.shijianji.models.{Asset, BitcoinAddress}
 import it.softfork.shijianji.utils._
 
 import scala.concurrent.ExecutionContext
 
-class Blockstream()(
+class Blockstream(addressConfig:CryptoCurrencyAddresses)(
   implicit system: ActorSystem,
   materializer: Materializer,
   ec: ExecutionContext
@@ -32,5 +33,14 @@ class Blockstream()(
         logger.debug(s"Fetched $response")
         response
       }
+  }
+
+  def btcAsset = {
+    val btcAddresses = addressConfig.bitcoinAddresses
+    FutureCollection.mapSequential(btcAddresses)(address).map { result =>
+      val assets = result.map(addr => addr.toAsset)
+      val balanceTotal = assets.map(_.balance).sum
+      Asset("BTC", balanceTotal)
+    }
   }
 }

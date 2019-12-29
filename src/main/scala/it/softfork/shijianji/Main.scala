@@ -62,8 +62,8 @@ object Main extends App with StrictLogging {
         sys.exit()
 
       case List("test") =>
-        val blockchain = new Blockstream()
-        val resultFuture = blockchain.address(BitcoinAddress("bc1qr0w9d8vty44yl7tyxecra82yxu06x84v3p5lp9")).recover {
+        val blockchain = new Blockstream(config.cryptocurrencyAddresses)
+        val resultFuture = blockchain.btcAsset.recover {
           case NonFatal(ex) =>
             logger.error("Something bad happened", ex)
         }
@@ -89,4 +89,5 @@ object Main extends App with StrictLogging {
       Thread.sleep(100)
       throw ex
   }
+
 }
