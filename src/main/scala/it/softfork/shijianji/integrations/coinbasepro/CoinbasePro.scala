@@ -1,6 +1,5 @@
 package it.softfork.shijianji.integrations.coinbasepro
 
-import java.time.ZonedDateTime
 import java.util.{Base64, UUID}
 
 import akka.NotUsed

@@ -7,6 +7,8 @@ import akka.stream.{ActorMaterializer, ActorMaterializerSettings}
 import com.micronautics.web3j.Address
 import com.typesafe.scalalogging.StrictLogging
 import it.softfork.debug4s.DebugMacro._
+import it.softfork.shijianji.integrations.blockchain.Blockchain
+import it.softfork.shijianji.integrations.blockstream.Blockstream
 import it.softfork.shijianji.integrations.coinbasepro
 import it.softfork.shijianji.integrations.coinbasepro._
 import it.softfork.shijianji.integrations.etherscan._
@@ -57,6 +59,15 @@ object Main extends App with StrictLogging {
 
       case List("download-transaction-as-csv") =>
         Await.ready(Tasks.currentPortfolioToCSV(config.integrations), 1.hour)
+        sys.exit()
+
+      case List("test") =>
+        val blockchain = new Blockstream()
+        val resultFuture = blockchain.address(BitcoinAddress("bc1qr0w9d8vty44yl7tyxecra82yxu06x84v3p5lp9")).recover {
+          case NonFatal(ex) =>
+            logger.error("Something bad happened", ex)
+        }
+        Await.ready(resultFuture.map(println), 1.hour)
         sys.exit()
 
       case List("test-run-etherscan-client") =>

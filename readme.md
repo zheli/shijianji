@@ -14,6 +14,7 @@
 - [ ] Binance fetcher
 - [ ] Bittrex fetcher
 - [ ] Coin balance by accounts (exchange, wallet, etc)
+- [ ] Portfolio history
 - [ ] Database support
   - [ ] PostgreSQL support
 

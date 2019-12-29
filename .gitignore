@@ -3,3 +3,7 @@
 .metals/
 project/
 target/
+dev.conf
+*.key
+*.keys
+*.csv
