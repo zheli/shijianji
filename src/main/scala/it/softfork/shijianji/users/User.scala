@@ -1,4 +1,4 @@
-package it.softfork.shijianji.models
+package it.softfork.shijianji.users
 
 import java.util.UUID
 

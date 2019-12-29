@@ -13,7 +13,7 @@ import it.softfork.shijianji.integrations.coinbasepro
 import it.softfork.shijianji.integrations.coinbasepro._
 import it.softfork.shijianji.integrations.etherscan._
 import it.softfork.shijianji.models._
-import it.softfork.shijianji.users.UserPostgresStorage
+import it.softfork.shijianji.users.{User, UserPostgresStorage}
 import slick.jdbc.PostgresProfile.api._
 
 import scala.concurrent._

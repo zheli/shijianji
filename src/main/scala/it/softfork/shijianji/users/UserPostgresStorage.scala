@@ -1,6 +1,5 @@
 package it.softfork.shijianji.users
 
-import it.softfork.shijianji.models.Users
 import slick.jdbc.PostgresProfile.api._
 import slick.lifted.TableQuery
 
