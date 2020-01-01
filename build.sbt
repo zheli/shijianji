@@ -36,6 +36,8 @@ libraryDependencies ++= Seq(
   // database driver
   "org.postgresql" % "postgresql" % "42.2.8", //org.postgresql.ds.PGSimpleDataSource dependency
   "com.h2database" % "h2" % "1.4.199",
+  "com.github.tminglei" %% "slick-pg" % "0.18.1", // postgresql extensions
+  "com.github.tminglei" %% "slick-pg_play-json" % "0.18.1", // play-json support
   // helpers
   "it.softfork" %% "debug4s" % "0.0.4"
 )
