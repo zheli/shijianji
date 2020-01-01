@@ -1,5 +1,6 @@
 package it.softfork.shijianji
 
+import java.time.OffsetDateTime
 import java.util.UUID
 
 import akka.actor.ActorSystem
@@ -7,14 +8,13 @@ import akka.stream.{ActorMaterializer, ActorMaterializerSettings}
 import com.micronautics.web3j.Address
 import com.typesafe.scalalogging.StrictLogging
 import it.softfork.debug4s.DebugMacro._
-import it.softfork.shijianji.integrations.blockchain.Blockchain
 import it.softfork.shijianji.integrations.blockstream.Blockstream
-import it.softfork.shijianji.integrations.coinbasepro
-import it.softfork.shijianji.integrations.coinbasepro._
 import it.softfork.shijianji.integrations.etherscan._
-import it.softfork.shijianji.models._
-import it.softfork.shijianji.users.{User, UserPostgresStorage}
-import slick.jdbc.PostgresProfile.api._
+import it.softfork.shijianji.users._
+import it.softfork.shijianji.utils.MyPostgresDriver
+import play.api.libs.json.JsString
+import slick.basic.DatabaseConfig
+import slick.jdbc.JdbcBackend.Database
 
 import scala.concurrent._
 import scala.concurrent.duration._
@@ -43,13 +43,16 @@ object Main extends App with StrictLogging {
 
       case List("setup-db") =>
         val db = Database.forConfig("shijianji.database.postgres")
+        import slick.jdbc.PostgresProfile.api._
+
         try {
           Await.result(
             db.run(
               DBIO.seq(
+                UserPostgresStorage.users.schema.dropIfExists,
                 UserPostgresStorage.setup,
-                UserPostgresStorage.users += User("John Doe", uuid = UUID.randomUUID()),
-                UserPostgresStorage.users += User("Fred Smith", uuid = UUID.randomUUID()),
+                UserPostgresStorage.users += User("John Doe", password = Password("123"), uuid = UUID.randomUUID()),
+                UserPostgresStorage.users += User("Fred Smith", password = Password("123"), uuid = UUID.randomUUID()),
                 // print the users (select * from USERS)
                 UserPostgresStorage.users.result.map(println)
               )
