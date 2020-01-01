@@ -9,7 +9,7 @@ import it.softfork.shijianji.users.User
 import org.scalatest.{FlatSpec, Matchers}
 
 class TransactionSpec extends FlatSpec with Matchers {
-  val user = User(uuid = UUID.randomUUID(), email = "user@test.com")
+  val user = User.testUser
   val euro = Currency("EUR")
   val btc = Currency("BTC")
   val platform = "CoinbasePro"
