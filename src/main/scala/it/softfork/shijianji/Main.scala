@@ -7,11 +7,13 @@ import akka.stream.{ActorMaterializer, ActorMaterializerSettings}
 import com.micronautics.web3j.Address
 import com.typesafe.scalalogging.StrictLogging
 import it.softfork.debug4s.DebugMacro._
-import it.softfork.shijianji.clients.coinbasepro
-import it.softfork.shijianji.clients.coinbasepro._
-import it.softfork.shijianji.clients.etherscan._
+import it.softfork.shijianji.integrations.blockchain.Blockchain
+import it.softfork.shijianji.integrations.blockstream.Blockstream
+import it.softfork.shijianji.integrations.coinbasepro
+import it.softfork.shijianji.integrations.coinbasepro._
+import it.softfork.shijianji.integrations.etherscan._
 import it.softfork.shijianji.models._
-import it.softfork.shijianji.users.UserPostgresStorage
+import it.softfork.shijianji.users.{User, UserPostgresStorage}
 import slick.jdbc.PostgresProfile.api._
 
 import scala.concurrent._
@@ -55,8 +57,21 @@ object Main extends App with StrictLogging {
         } finally db.close()
         sys.exit()
 
+      case List("download-transaction-as-csv") =>
+        Await.ready(Tasks.currentPortfolioToCSV(config.integrations), 1.hour)
+        sys.exit()
+
+      case List("test") =>
+        val blockchain = new Blockstream(config.cryptocurrencyAddresses)
+        val resultFuture = blockchain.btcAsset.recover {
+          case NonFatal(ex) =>
+            logger.error("Something bad happened", ex)
+        }
+        Await.ready(resultFuture.map(println), 1.hour)
+        sys.exit()
+
       case List("test-run-etherscan-client") =>
-        val etherscan = new Etherscan(config.etherscan)
+        val etherscan = new Etherscan(config.integrations.etherscan)
         val resultFuture = {
           etherscan.normalTransactions(Address("0x6BeF00Ee10775d4DD51F1ee2443f17B6f298FC9D")).map(debug(_))
         }
@@ -74,4 +89,5 @@ object Main extends App with StrictLogging {
       Thread.sleep(100)
       throw ex
   }
+
 }

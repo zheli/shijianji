@@ -13,7 +13,6 @@
 
     <logger name="akka" level="INFO"/>
     <logger name="com.typesafe.sslconfig" level="ERROR"/>
-    <logger name="slick" level="INFO"/>
 
     <root level="DEBUG">
         <appender-ref ref="CONSOLE"/>

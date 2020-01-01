@@ -1,4 +1,4 @@
-package it.softfork.shijianji.clients
+package it.softfork.shijianji.integrations
 
 import akka.http.scaladsl.model.Uri
 

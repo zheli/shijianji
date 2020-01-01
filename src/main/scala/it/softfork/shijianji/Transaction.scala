@@ -2,7 +2,7 @@ package it.softfork.shijianji
 
 import java.time.ZonedDateTime
 
-import it.softfork.shijianji.models.User
+import it.softfork.shijianji.users.User
 import play.api.libs.json.JsValue
 import tech.minna.playjson.macros.jsonFlat
 

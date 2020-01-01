@@ -1,4 +1,4 @@
-package it.softfork.shijianji.clients.etherscan
+package it.softfork.shijianji.integrations.etherscan
 
 import java.util.UUID
 
@@ -11,6 +11,7 @@ import com.typesafe.scalalogging.StrictLogging
 import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport
 import it.softfork.shijianji._
 import it.softfork.shijianji.models._
+import it.softfork.shijianji.users.User
 import it.softfork.shijianji.utils.{RichFutureResponse, RichUri}
 
 import scala.concurrent.{ExecutionContext, Future}
