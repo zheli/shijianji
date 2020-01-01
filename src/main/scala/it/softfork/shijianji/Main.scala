@@ -10,7 +10,7 @@ import com.typesafe.scalalogging.StrictLogging
 import it.softfork.debug4s.DebugMacro._
 import it.softfork.shijianji.integrations.blockstream.Blockstream
 import it.softfork.shijianji.integrations.etherscan._
-import it.softfork.shijianji.users.{Password, TestRepository, User, UserEventRecord, UserEventRepository, UserPostgresStorage}
+import it.softfork.shijianji.users._
 import it.softfork.shijianji.utils.MyPostgresDriver
 import play.api.libs.json.JsString
 import slick.basic.DatabaseConfig
