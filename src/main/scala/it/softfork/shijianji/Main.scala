@@ -42,7 +42,7 @@ object Main extends App with StrictLogging {
         sys.exit()
 
       case List("setup-db") =>
-        val db = Database.forConfig("shijianji.database.postgres2")
+        val db = Database.forConfig("shijianji.database.postgres")
         try {
           Await.result(
             db.run(
