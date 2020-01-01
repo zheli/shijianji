@@ -42,26 +42,37 @@ object Main extends App with StrictLogging {
         sys.exit()
 
       case List("setup-db") =>
-        val db = Database.forConfig("shijianji.database.postgres")
-        import slick.jdbc.PostgresProfile.api._
+        val dbConfig: DatabaseConfig[MyPostgresDriver] = DatabaseConfig.forConfig("shijianji.database2")
+        val db = dbConfig.db
+        val users = new UserRepositoryImpl(dbConfig)
 
         try {
-          Await.result(
-            db.run(
-              DBIO.seq(
-                UserPostgresStorage.users.schema.dropIfExists,
-                UserPostgresStorage.setup,
-                UserPostgresStorage.users += User("John Doe", password = Password("123"), uuid = UUID.randomUUID()),
-                UserPostgresStorage.users += User("Fred Smith", password = Password("123"), uuid = UUID.randomUUID()),
-                // print the users (select * from USERS)
-                UserPostgresStorage.users.result.map(println)
-              )
-            ), 1.hour)
+          Await.result({
+            users.setup
+            users.create(User.testUser)
+          }, 1.hour)
         } finally db.close()
         sys.exit()
 
       case List("download-transaction-as-csv") =>
         Await.ready(Tasks.currentPortfolioToCSV(config.integrations), 1.hour)
+        sys.exit()
+
+      case List("test-user-event-repo") =>
+        val repo = new UserEventRepository(DatabaseConfig.forConfig("shijianji.database2"))
+        Await.ready({
+          {
+            val event = UserEventRecord(userId = users.UserId(UUID.randomUUID()), event = JsString("tets123"), at = OffsetDateTime.now())
+            for {
+              _ <- repo.teardown()
+                _ <- repo.setup()
+                _ <- repo.insert(event)
+            } yield ()
+            }
+            .recover{
+              case NonFatal(ex) => logger.error("Something is wrong", ex)
+            }
+        }, 1.hour)
         sys.exit()
 
       case List("test") =>
