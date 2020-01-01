@@ -7,4 +7,6 @@ object UserPostgresStorage {
   val users = TableQuery[Users]
 
   def setup= DBIO.seq(users.schema.createIfNotExists)
+  def teardown = users.schema.dropIfExists
 }
+
