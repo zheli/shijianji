@@ -20,8 +20,6 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-stream" % akkaStreamVersion,
   "com.typesafe.akka" %% "akka-stream-testkit" % akkaStreamVersion % Test,
   "com.typesafe.play" %% "play-json" % "2.6.9",
-  "com.typesafe.slick" %% "slick" % slickVersion,
-  "com.typesafe.slick" %% "slick-hikaricp" % slickVersion,
   "de.heikoseeberger" %% "akka-http-play-json" % "1.20.0",
   "org.scala-lang.modules" %% "scala-async" % "0.9.7",
   "org.scalatest" %% "scalatest" % "3.0.5" % "test",
@@ -33,11 +31,14 @@ libraryDependencies ++= Seq(
   // logging
   "ch.qos.logback" % "logback-classic" % "1.2.3",
   "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2",
-  // database driver
-  "org.postgresql" % "postgresql" % "42.2.8", //org.postgresql.ds.PGSimpleDataSource dependency
-  "com.h2database" % "h2" % "1.4.199",
+  // database related
+  "com.typesafe.slick" %% "slick" % slickVersion,
+  "com.typesafe.slick" %% "slick-testkit" % slickVersion % "test",
+  "com.typesafe.slick" %% "slick-hikaricp" % slickVersion,
   "com.github.tminglei" %% "slick-pg" % "0.18.1", // postgresql extensions
   "com.github.tminglei" %% "slick-pg_play-json" % "0.18.1", // play-json support
+  "org.postgresql" % "postgresql" % "42.2.8", // postgres database driver
+  "com.h2database" % "h2" % "1.4.199", // h2mem database driver
   // helpers
   "it.softfork" %% "debug4s" % "0.0.4"
 )
@@ -48,17 +49,9 @@ libraryDependencies ~= { _.map(_.exclude("org.slf4j", "slf4j-nop")) }
 resolvers ++= Seq(
   Resolver.bintrayRepo("liuhongchao", "maven"),
   Resolver.bintrayRepo("minna-technologies", "maven"),
-//  "Typesafe Releases" at "https://repo.typesafe.com/typesafe/releases/", // Fix HTTP warning
-//  "Typesafe Ivy Releases" at "https://repo.typesafe.com/typesafe/ivy-releases/",
   "micronautics/scala on bintray" at "https://dl.bintray.com/micronautics/scala",
   "Ethereum Maven" at "https://dl.bintray.com/ethereum/maven/"
 )
-
-//// https://github.com/irufus/gdax-java publish to maven local
-//libraryDependencies ++= Seq(
-//  "irufus" % "gdax-java" % "0.10.0"
-//)
-//resolvers += Resolver.mavenLocal
 
 // Needed for play json macros macro annotations
 addCompilerPlugin(
