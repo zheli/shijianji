@@ -11,7 +11,7 @@ import it.softfork.debug4s.DebugMacro._
 import it.softfork.shijianji.integrations.blockstream.Blockstream
 import it.softfork.shijianji.integrations.etherscan._
 import it.softfork.shijianji.users._
-import it.softfork.shijianji.utils.MyPostgresDriver
+import it.softfork.shijianji.utils.MyPostgresProfile
 import play.api.libs.json.JsString
 import slick.basic.DatabaseConfig
 import slick.jdbc.JdbcBackend.Database
@@ -31,9 +31,6 @@ object Main extends App with StrictLogging {
 
   val config = ShijianjiConfig.load()
 
-  // Temporary user until we have a working user module
-//  val user = User(id = UUID.randomUUID(), email = "test@ha.com")
-
   try {
     args.toList match {
       case Nil =>
@@ -42,7 +39,7 @@ object Main extends App with StrictLogging {
         sys.exit()
 
       case List("setup-db") =>
-        val dbConfig: DatabaseConfig[MyPostgresDriver] = DatabaseConfig.forConfig("shijianji.database2")
+        val dbConfig: DatabaseConfig[MyPostgresProfile] = DatabaseConfig.forConfig("shijianji.database2")
         val db = dbConfig.db
         val users = new UserRepositoryImpl(dbConfig)
 
@@ -56,23 +53,6 @@ object Main extends App with StrictLogging {
 
       case List("download-transaction-as-csv") =>
         Await.ready(Tasks.currentPortfolioToCSV(config.integrations), 1.hour)
-        sys.exit()
-
-      case List("test-user-event-repo") =>
-        val repo = new UserEventRepository(DatabaseConfig.forConfig("shijianji.database2"))
-        Await.ready({
-          {
-            val event = UserEventRecord(userId = users.UserId(UUID.randomUUID()), event = JsString("tets123"), at = OffsetDateTime.now())
-            for {
-              _ <- repo.teardown()
-                _ <- repo.setup()
-                _ <- repo.insert(event)
-            } yield ()
-            }
-            .recover{
-              case NonFatal(ex) => logger.error("Something is wrong", ex)
-            }
-        }, 1.hour)
         sys.exit()
 
       case List("test") =>

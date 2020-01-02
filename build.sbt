@@ -47,6 +47,7 @@ libraryDependencies ++= Seq(
 libraryDependencies ~= { _.map(_.exclude("org.slf4j", "slf4j-nop")) }
 
 resolvers ++= Seq(
+  "Typesafe repository" at "https://repo.typesafe.com/typesafe/releases/",
   Resolver.bintrayRepo("liuhongchao", "maven"),
   Resolver.bintrayRepo("minna-technologies", "maven"),
   "micronautics/scala on bintray" at "https://dl.bintray.com/micronautics/scala",

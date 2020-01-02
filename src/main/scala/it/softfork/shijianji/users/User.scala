@@ -2,14 +2,14 @@ package it.softfork.shijianji.users
 
 import java.util.UUID
 
-import it.softfork.shijianji.utils.{HasDatabaseConfig, MyPostgresDriver}
+import it.softfork.shijianji.utils.{HasDatabaseConfig, MyPostgresProfile}
 import play.api.libs.json.{Json, OFormat}
 import slick.basic.DatabaseConfig
 import slick.lifted.MappedTo
 import slick.sql.SqlProfile.ColumnOption.SqlType
 import tech.minna.playjson.macros.jsonFlat
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 // @jsonFlat case classes need to be defined before other class that uses these types.
 @jsonFlat case class UserId(value: UUID) extends MappedTo[UUID]
@@ -36,7 +36,7 @@ object User {
   val testUser: User = User(userId = UserId(UUID.randomUUID()), email = "test@ha.com", password = Password("test123"))
 }
 
-trait UserRepository { self: HasDatabaseConfig[MyPostgresDriver] =>
+trait UserRepository { self: HasDatabaseConfig[MyPostgresProfile] =>
   import profile.api._
 
   protected class UserTable(tag: Tag) extends Table[User](tag, "users") {
@@ -48,18 +48,20 @@ trait UserRepository { self: HasDatabaseConfig[MyPostgresDriver] =>
 
     def * = (id.?, userId, email, password) <> ((User.apply _).tupled, User.unapply)
   }
+
+  def create(user: User): Future[Unit]
 }
 
-class UserRepositoryImpl(protected val dbConfig: DatabaseConfig[MyPostgresDriver])(implicit ec: ExecutionContext)
+class UserRepositoryImpl(protected val dbConfig: DatabaseConfig[MyPostgresProfile])(implicit ec: ExecutionContext)
     extends UserRepository
-    with HasDatabaseConfig[MyPostgresDriver] {
+    with HasDatabaseConfig[MyPostgresProfile] {
   import profile.api._
 
   private val users = TableQuery[UserTable]
 
   def setup = db.run(users.schema.createIfNotExists)
 
-  def create(user:User) = {
-    db.run(users += user)
+  override def create(user: User) = {
+    db.run(users += user).map(_ => ())
   }
 }
