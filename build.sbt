@@ -4,10 +4,10 @@ organization := "it.softfork"
 
 version := "0.1"
 
-scalaVersion := "2.12.8"
+scalaVersion := "2.12.10"
 
 val akkaStreamVersion = "2.5.9"
-val akkaHttpVersion = "10.0.9"
+val akkaHttpVersion = "10.1.11"
 val slickVersion = "3.3.1"
 libraryDependencies ++= Seq(
   "com.github.tototoshi" %% "scala-csv" % "1.3.5",
